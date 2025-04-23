@@ -21,6 +21,10 @@ a curated list of resources for aspiring data scientists and machine learning en
   - [Books](#books)
 - [Data Science Resources](#data-science-resources)
   - [Books](#books-1)
+- [Interview Prep Resources](#interview-prep-resources)
+  - [Useful Github Repositories](#useful-github-repositories)
+  - [Simplified 90-Day Study Plan (DS/MLE Focus)](#simplified-90-day-study-plan-dsmle-focus)
+
 ### Introduction 
 **<u>What It Takes to Become a Data Scientist or Machine Learning Engineer</u>**
 
@@ -142,3 +146,64 @@ Remember: Those LeetCode grinding sessions weren't just for passing interviewsâ€
 - *Transformers for Natural Language Processing* by Denis Rothman (Packt, 2022) - [Amazon](https://www.amazon.com/Transformers-Natural-Language-Processing-Understanding/dp/1803247339)
 - *Applied Machine Learning Explainability Techniques* by Alex Thomas (O'Reilly, 2022) - [Amazon](https://www.amazon.com/Applied-Machine-Learning-Explainability-Techniques/dp/1098102401)
 - *Interpretable Machine Learning* by Christoph Molnar (Online/Self-published, 2022) - [Website](https://christophm.github.io/interpretable-ml-book/)
+
+### Interview Prep Resources
+**Interview Focus:** While familiarity with common tools is helpful, interviews often prioritize assessing your grasp of fundamental concepts, problem-solving abilities, and communication skills. Focus on strengthening your understanding of core statistical principles, algorithms, data structures, and your ability to articulate technical solutions clearly. These transferable skills are more valuable than deep knowledge of any single, rapidly evolving tech stack.
+
+#### Useful Github Repositories
+- https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers
+- https://github.com/khanhnamle1994/cracking-the-data-science-interview
+- https://github.com/jwasham/coding-interview-university (might be a slight overkill for data scientist interview)
+
+#### Simplified 90-Day Study Plan (DS/MLE Focus)
+
+This plan provides a structured approach, adapt it based on your background and target roles.
+
+**Phase 1: Foundations (Days 1-30)**
+
+*   **Week 1-2: Python & Core Libraries:**
+    *   Solidify Python fundamentals (data types, control flow, functions, OOP basics).
+    *   Master NumPy for numerical operations and Pandas for data manipulation & analysis.
+    *   Practice with real-world datasets.
+*   **Week 3-4: Data Structures & Algorithms (DS/ML Relevance):**
+    *   Review core data structures (Arrays, Hash Tables/Dictionaries, Trees, Graphs).
+    *   Focus on algorithms relevant to data processing and ML (Sorting, Searching, basic Graph algorithms).
+    *   Practice problems on platforms like LeetCode, focusing on medium difficulty.
+*   **Week 4: Statistics & Probability:**
+    *   Refresh fundamental concepts: descriptive statistics, probability distributions, hypothesis testing, confidence intervals.
+    *   Understand their application in data analysis and model evaluation.
+
+**Phase 2: Core DS/ML (Days 31-60)**
+
+*   **Week 5-6: SQL & Data Wrangling:**
+    *   Master SQL for data retrieval and manipulation (Joins, Aggregations, Window Functions).
+    *   Practice advanced data cleaning and transformation techniques using Pandas.
+*   **Week 7-8: Machine Learning Fundamentals:**
+    *   Understand the ML lifecycle (data collection to deployment).
+    *   Study supervised vs. unsupervised learning, bias-variance tradeoff, cross-validation.
+    *   Learn key evaluation metrics (Accuracy, Precision, Recall, F1-score, AUC, RMSE, MAE).
+    *   Explore feature engineering and selection techniques.
+*   **Week 9: Common ML Algorithms:**
+    *   Deep dive into Linear/Logistic Regression, Decision Trees, Random Forests, SVM, K-Means Clustering.
+    *   Understand their assumptions, pros, cons, and implementation (e.g., using Scikit-learn).
+
+**Phase 3: Specialization & Practice (Days 61-90)**
+
+*   **Week 10: Choose Your Path & Deepen Knowledge:**
+    *   **Data Scientist:** Focus on Advanced Statistics, A/B Testing, Causal Inference, Data Visualization & Storytelling.
+    *   **MLE:** Focus on MLOps (Docker, CI/CD basics, monitoring), ML System Design patterns, introduction to Big Data tools (like Spark basics), Deep Learning fundamentals (if relevant).
+*   **Week 11: LLM Applications (Both Roles):**
+    *   Understand core LLM concepts (Transformers architecture basics, attention mechanism).
+    *   Explore Prompt Engineering techniques for effective interaction.
+    *   Learn about Fine-tuning strategies for domain adaptation.
+    *   Study Retrieval-Augmented Generation (RAG) patterns.
+    *   Consider LLM deployment challenges (cost, latency, ethics).
+*   **Week 12: Practice & Projects:**
+    *   Intensify practice on coding platforms (SQL, Python, Algorithms).
+    *   Work on end-to-end portfolio projects or refine existing ones (potentially incorporating LLMs).
+    *   Practice explaining your projects clearly and concisely.
+*   **Week 13: Interview Simulation:**
+    *   Focus on mock interviews (technical, behavioral, case studies).
+    *   Practice explaining complex concepts simply (including LLM concepts if applicable).
+    *   Prepare answers for common behavioral questions ("Tell me about a time...", "Why this role?").
+    *   Review company-specific requirements and research.
