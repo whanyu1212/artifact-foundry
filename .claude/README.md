@@ -2,6 +2,10 @@
 
 This directory contains custom agents and skills to help manage the Artifact Foundry repository.
 
+## Repository Guidelines
+
+- [ORGANIZATION.md](ORGANIZATION.md) - Complete guide on how to organize content across folders (interview-prep vs topic-specific folders)
+
 ## Agents
 
 ### learning-curator
