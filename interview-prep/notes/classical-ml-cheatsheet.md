@@ -46,35 +46,33 @@
 
 | Loss Function | Formula | Use Case |
 |---------------|---------|----------|
-| **Least Squared Error** | `1/2(y-z)²` | Linear regression |
-| **Logistic Loss** | `log(1+exp(-yz))` | Logistic regression |
-| **Hinge Loss** | `max(0, 1-yz)` | SVM |
-| **Cross-Entropy** | `-[y·log(z) + (1-y)·log(1-z)]` | Neural networks |
+| **Least Squared Error** | $\frac{1}{2}(y-z)^2$ | Linear regression |
+| **Logistic Loss** | $\log(1+\exp(-yz))$ | Logistic regression |
+| **Hinge Loss** | $\max(0, 1-yz)$ | SVM |
+| **Cross-Entropy** | $-[y\log(z) + (1-y)\log(1-z)]$ | Neural networks |
 
-**Cost Function**: `J(θ) = Σ_{i=1}^m L(h_θ(x^(i)), y^(i))`
+**Cost Function**: $J(\theta) = \sum_{i=1}^m L(h_\theta(x^{(i)}), y^{(i)})$
 
 ### Optimization Algorithms
 
-**Gradient Descent**: `θ ← θ - α·∇J(θ)`
+**Gradient Descent**: $\theta \leftarrow \theta - \alpha \nabla J(\theta)$
 
-**Newton's Method**: `θ ← θ - ℓ'(θ)/ℓ''(θ)`
+**Newton's Method**: $\theta \leftarrow \theta - \frac{\ell'(\theta)}{\ell''(\theta)}$
 - Faster convergence but requires computing Hessian
 
-**Likelihood Maximization**: `θ^opt = arg max_θ L(θ)`
+**Likelihood Maximization**: $\theta^{\text{opt}} = \arg\max_\theta L(\theta)$
 
 ### Important Inequalities
 
-**Jensen's Inequality**: For convex function `f` and random variable `X`:
-```
-E[f(X)] ≥ f(E[X])
-```
+**Jensen's Inequality**: For convex function $f$ and random variable $X$:
 
-**Union Bound**: `P(A₁ ∪ ... ∪ Aₖ) ≤ P(A₁) + ... + P(Aₖ)`
+$$\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])$$
 
-**Hoeffding Inequality**: For `m` i.i.d. Bernoulli variables with parameter `φ`:
-```
-P(|φ - φ̂| > γ) ≤ 2·exp(-2γ²m)
-```
+**Union Bound**: $P(A_1 \cup \cdots \cup A_k) \leq P(A_1) + \cdots + P(A_k)$
+
+**Hoeffding Inequality**: For $m$ i.i.d. Bernoulli variables with parameter $\phi$:
+
+$$P(|\phi - \hat{\phi}| > \gamma) \leq 2\exp(-2\gamma^2 m)$$
 
 ---
 
@@ -82,23 +80,21 @@ P(|φ - φ̂| > γ) ≤ 2·exp(-2γ²m)
 
 ### Linear Regression
 
-**Assumption**: `y|x;θ ~ N(μ, σ²)`
+**Assumption**: $y|x;\theta \sim \mathcal{N}(\mu, \sigma^2)$
 
-**Hypothesis**: `h_θ(x) = θ^T x`
+**Hypothesis**: $h_\theta(x) = \theta^T x$
 
 **Normal Equations** (closed-form solution):
-```
-θ = (X^T X)^(-1) X^T y
-```
+
+$$\theta = (X^T X)^{-1} X^T y$$
 
 **LMS Algorithm** (Widrow-Hoff rule):
-```
-∀j: θ_j ← θ_j + α·Σ[y^(i) - h_θ(x^(i))]·x_j^(i)
-```
+
+$$\forall j: \theta_j \leftarrow \theta_j + \alpha \sum_{i=1}^m [y^{(i)} - h_\theta(x^{(i)})] x_j^{(i)}$$
 
 **Locally Weighted Regression (LWR)**:
-- Weight training examples: `w^(i)(x) = exp(-|x^(i) - x|²/(2τ²))`
-- `τ`: bandwidth parameter controlling locality
+- Weight training examples: $w^{(i)}(x) = \exp\left(-\frac{\|x^{(i)} - x\|^2}{2\tau^2}\right)$
+- $\tau$: bandwidth parameter controlling locality
 
 **Pros/Cons**:
 - ✅ Simple, interpretable, closed-form solution
@@ -111,22 +107,20 @@ P(|φ - φ̂| > γ) ≤ 2·exp(-2γ²m)
 ### Logistic Regression
 
 **Sigmoid Function**:
-```
-g(z) = 1/(1 + e^(-z)) ∈ (0,1)
-```
 
-**Model**: `P(y=1|x;θ) = φ = g(θ^T x)`
+$$g(z) = \frac{1}{1 + e^{-z}} \in (0,1)$$
 
-**Assumption**: `y|x;θ ~ Bernoulli(φ)`
+**Model**: $P(y=1|x;\theta) = \phi = g(\theta^T x)$
 
-**Decision Boundary**: `θ^T x = 0`
+**Assumption**: $y|x;\theta \sim \text{Bernoulli}(\phi)$
+
+**Decision Boundary**: $\theta^T x = 0$
 
 **No closed-form solution** - use gradient descent or Newton's method
 
 **Softmax Regression** (multiclass):
-```
-φ_i = exp(θ_i^T x) / Σ_{j=1}^K exp(θ_j^T x)
-```
+
+$$\phi_i = \frac{\exp(\theta_i^T x)}{\sum_{j=1}^K \exp(\theta_j^T x)}$$
 
 **Pros/Cons**:
 - ✅ Probabilistic output
@@ -140,28 +134,27 @@ g(z) = 1/(1 + e^(-z)) ∈ (0,1)
 ### Generalized Linear Models (GLM)
 
 **Exponential Family Distribution**:
-```
-p(y;η) = b(y)·exp(η·T(y) - a(η))
-```
+
+$$p(y;\eta) = b(y) \exp(\eta T(y) - a(\eta))$$
 
 Where:
-- `η`: natural parameter
-- `T(y)`: sufficient statistic
-- `a(η)`: log partition function
-- `b(y)`: base measure
+- $\eta$: natural parameter
+- $T(y)$: sufficient statistic
+- $a(\eta)$: log partition function
+- $b(y)$: base measure
 
 **Common Distributions**:
 
-| Distribution | η | T(y) | a(η) |
+| Distribution | $\eta$ | $T(y)$ | $a(\eta)$ |
 |--------------|---|------|------|
-| **Bernoulli** | `log(φ/(1-φ))` | `y` | `log(1+exp(η))` |
-| **Gaussian** | `μ` | `y` | `η²/2` |
-| **Poisson** | `log(λ)` | `y` | `e^η` |
+| **Bernoulli** | $\log\left(\frac{\phi}{1-\phi}\right)$ | $y$ | $\log(1+\exp(\eta))$ |
+| **Gaussian** | $\mu$ | $y$ | $\frac{\eta^2}{2}$ |
+| **Poisson** | $\log(\lambda)$ | $y$ | $e^\eta$ |
 
 **GLM Assumptions**:
-1. `y|x;θ ~ ExpFamily(η)`
-2. `h_θ(x) = E[y|x;θ]`
-3. `η = θ^T x` (linear in parameters)
+1. $y|x;\theta \sim \text{ExpFamily}(\eta)$
+2. $h_\theta(x) = \mathbb{E}[y|x;\theta]$
+3. $\eta = \theta^T x$ (linear in parameters)
 
 **Applications**:
 - Bernoulli → Logistic regression
@@ -174,44 +167,37 @@ Where:
 
 **Goal**: Maximize margin (minimum distance to decision boundary)
 
-**Decision Function**: `h(x) = sign(w^T x - b)`
+**Decision Function**: $h(x) = \text{sign}(w^T x - b)$
 
 **Optimization Problem**:
-```
-min 1/2·||w||²
-subject to: y^(i)(w^T x^(i) - b) ≥ 1, ∀i
-```
 
-**Decision Boundary**: `w^T x - b = 0`
+$$\min \frac{1}{2}\|w\|^2 \quad \text{subject to: } y^{(i)}(w^T x^{(i)} - b) \geq 1, \forall i$$
 
-**Margin**: `2/||w||`
+**Decision Boundary**: $w^T x - b = 0$
 
-**Hinge Loss**: `L(z,y) = max(0, 1-yz) = [1-yz]_+`
+**Margin**: $\frac{2}{\|w\|}$
+
+**Hinge Loss**: $L(z,y) = \max(0, 1-yz) = [1-yz]_+$
 
 **Soft-Margin SVM** (with slack variables):
-```
-min 1/2·||w||² + C·Σξ_i
-subject to: y^(i)(w^T x^(i) - b) ≥ 1 - ξ_i, ξ_i ≥ 0
-```
 
-**Kernels**: `K(x,z) = φ(x)^T φ(z)`
+$$\min \frac{1}{2}\|w\|^2 + C\sum_i \xi_i \quad \text{subject to: } y^{(i)}(w^T x^{(i)} - b) \geq 1 - \xi_i, \xi_i \geq 0$$
+
+**Kernels**: $K(x,z) = \phi(x)^T \phi(z)$
 
 Common kernels:
-- **Linear**: `K(x,z) = x^T z`
-- **Polynomial**: `K(x,z) = (x^T z + c)^d`
-- **Gaussian (RBF)**: `K(x,z) = exp(-||x-z||²/(2σ²))`
-- **Sigmoid**: `K(x,z) = tanh(κ·x^T z + c)`
+- **Linear**: $K(x,z) = x^T z$
+- **Polynomial**: $K(x,z) = (x^T z + c)^d$
+- **Gaussian (RBF)**: $K(x,z) = \exp\left(-\frac{\|x-z\|^2}{2\sigma^2}\right)$
+- **Sigmoid**: $K(x,z) = \tanh(\kappa x^T z + c)$
 
 **Lagrangian Formulation**:
-```
-L(w,b,α) = 1/2·||w||² - Σα_i[y^(i)(w^T x^(i) - b) - 1]
-```
+
+$$\mathcal{L}(w,b,\alpha) = \frac{1}{2}\|w\|^2 - \sum_i \alpha_i[y^{(i)}(w^T x^{(i)} - b) - 1]$$
 
 **Dual Problem**:
-```
-max Σα_i - 1/2·ΣΣα_i α_j y^(i) y^(j) K(x^(i), x^(j))
-subject to: 0 ≤ α_i ≤ C, Σα_i y^(i) = 0
-```
+
+$$\max \sum_i \alpha_i - \frac{1}{2}\sum_i\sum_j \alpha_i \alpha_j y^{(i)} y^{(j)} K(x^{(i)}, x^{(j)}) \quad \text{subject to: } 0 \leq \alpha_i \leq C, \sum_i \alpha_i y^{(i)} = 0$$
 
 **Pros/Cons**:
 - ✅ Effective in high dimensions
@@ -226,26 +212,24 @@ subject to: 0 ≤ α_i ≤ C, Σα_i y^(i) = 0
 
 ### Gaussian Discriminant Analysis (GDA)
 
-**Generative approach**: Model `P(x|y)` then derive `P(y|x)`
+**Generative approach**: Model $P(x|y)$ then derive $P(y|x)$
 
 **Assumptions**:
-- `y ~ Bernoulli(φ)`
-- `x|y=0 ~ N(μ₀, Σ)`
-- `x|y=1 ~ N(μ₁, Σ)`
+- $y \sim \text{Bernoulli}(\phi)$
+- $x|y=0 \sim \mathcal{N}(\mu_0, \Sigma)$
+- $x|y=1 \sim \mathcal{N}(\mu_1, \Sigma)$
 
 **Maximum Likelihood Estimates**:
-```
-φ̂ = (1/m)·Σ 1_{y^(i)=1}
 
-μ̂_j = Σ 1_{y^(i)=j}·x^(i) / Σ 1_{y^(i)=j}
+$$\hat{\phi} = \frac{1}{m}\sum_{i=1}^m \mathbb{1}_{\{y^{(i)}=1\}}$$
 
-Σ̂ = (1/m)·Σ(x^(i) - μ_{y^(i)})(x^(i) - μ_{y^(i)})^T
-```
+$$\hat{\mu}_j = \frac{\sum_{i=1}^m \mathbb{1}_{\{y^{(i)}=j\}} x^{(i)}}{\sum_{i=1}^m \mathbb{1}_{\{y^{(i)}=j\}}}$$
+
+$$\hat{\Sigma} = \frac{1}{m}\sum_{i=1}^m (x^{(i)} - \mu_{y^{(i)}})(x^{(i)} - \mu_{y^{(i)}})^T$$
 
 **Bayes Rule Application**:
-```
-P(y=1|x) = P(x|y=1)·P(y=1) / [P(x|y=1)·P(y=1) + P(x|y=0)·P(y=0)]
-```
+
+$$P(y=1|x) = \frac{P(x|y=1)P(y=1)}{P(x|y=1)P(y=1) + P(x|y=0)P(y=0)}$$
 
 **GDA vs Logistic Regression**:
 - GDA makes stronger assumptions (Gaussian)
@@ -266,21 +250,18 @@ P(y=1|x) = P(x|y=1)·P(y=1) / [P(x|y=1)·P(y=1) + P(x|y=0)·P(y=0)]
 ### Naive Bayes
 
 **Core Assumption**: Features are conditionally independent given class
-```
-P(x|y) = P(x₁|y)·P(x₂|y)···P(x_n|y) = Π_{i=1}^n P(x_i|y)
-```
+
+$$P(x|y) = P(x_1|y) \cdot P(x_2|y) \cdots P(x_n|y) = \prod_{i=1}^n P(x_i|y)$$
 
 **Prediction**:
-```
-ŷ = arg max_y P(y)·Π_{i=1}^n P(x_i|y)
-```
+
+$$\hat{y} = \arg\max_y P(y) \prod_{i=1}^n P(x_i|y)$$
 
 **Maximum Likelihood Estimates**:
-```
-P(y=k) = #{j: y^(j)=k} / m
 
-P(x_i=l|y=k) = #{j: y^(j)=k and x_i^(j)=l} / #{j: y^(j)=k}
-```
+$$P(y=k) = \frac{\#\{j: y^{(j)}=k\}}{m}$$
+
+$$P(x_i=l|y=k) = \frac{\#\{j: y^{(j)}=k \text{ and } x_i^{(j)}=l\}}{\#\{j: y^{(j)}=k\}}$$
 
 **Variants**:
 - **Gaussian Naive Bayes**: Continuous features, assume normal distribution
@@ -288,9 +269,8 @@ P(x_i=l|y=k) = #{j: y^(j)=k and x_i^(j)=l} / #{j: y^(j)=k}
 - **Bernoulli Naive Bayes**: Binary features
 
 **Laplace Smoothing** (avoid zero probabilities):
-```
-P(x_i=l|y=k) = [#{matches} + 1] / [#{y=k} + |V|]
-```
+
+$$P(x_i=l|y=k) = \frac{\#\{\text{matches}\} + 1}{\#\{y=k\} + |V|}$$
 
 **Applications**:
 - Text classification
@@ -483,18 +463,17 @@ Weight by inverse distance: w_i = 1/d(x, x^(i))
 
 ### K-Means Clustering
 
-**Goal**: Partition data into `k` clusters minimizing within-cluster variance
+**Goal**: Partition data into $k$ clusters minimizing within-cluster variance
 
 **Algorithm**:
-1. **Initialize**: Randomly select `k` centroids `μ₁,...,μₖ`
+1. **Initialize**: Randomly select $k$ centroids $\mu_1,\ldots,\mu_k$
 2. **Repeat until convergence**:
-   - **Assignment**: `c^(i) = arg min_j ||x^(i) - μ_j||²`
-   - **Update**: `μ_j = (1/|C_j|)·Σ_{i∈C_j} x^(i)`
+   - **Assignment**: $c^{(i)} = \arg\min_j \|x^{(i)} - \mu_j\|^2$
+   - **Update**: $\mu_j = \frac{1}{|C_j|}\sum_{i \in C_j} x^{(i)}$
 
 **Objective (Distortion Function)**:
-```
-J(c,μ) = Σ_{i=1}^m ||x^(i) - μ_{c^(i)}||²
-```
+
+$$J(c,\mu) = \sum_{i=1}^m \|x^{(i)} - \mu_{c^{(i)}}\|^2$$
 
 **Initialization Methods**:
 - **Random**: Pick `k` random points
@@ -531,14 +510,12 @@ J(c,μ) = Σ_{i=1}^m ||x^(i) - μ_{c^(i)}||²
 **General Framework**:
 
 **E-step**: Compute posterior probability of latent variables
-```
-Q_i(z^(i)) = P(z^(i)|x^(i);θ)
-```
+
+$$Q_i(z^{(i)}) = P(z^{(i)}|x^{(i)};\theta)$$
 
 **M-step**: Maximize expected complete-data log-likelihood
-```
-θ := arg max_θ Σ_i Σ_{z^(i)} Q_i(z^(i))·log[P(x^(i),z^(i);θ)/Q_i(z^(i))]
-```
+
+$$\theta := \arg\max_\theta \sum_i \sum_{z^{(i)}} Q_i(z^{(i)}) \log\left[\frac{P(x^{(i)},z^{(i)};\theta)}{Q_i(z^{(i)})}\right]$$
 
 **Convergence**: Guaranteed to increase likelihood (or stay same)
 
@@ -547,23 +524,20 @@ Q_i(z^(i)) = P(z^(i)|x^(i);θ)
 #### Gaussian Mixture Models (GMM)
 
 **Model Assumptions**:
-- `z ~ Multinomial(φ)` (which Gaussian)
-- `x|z=j ~ N(μ_j, Σ_j)`
+- $z \sim \text{Multinomial}(\phi)$ (which Gaussian)
+- $x|z=j \sim \mathcal{N}(\mu_j, \Sigma_j)$
 
 **E-step**: Compute responsibilities
-```
-w_j^(i) = P(z^(i)=j|x^(i);θ)
-        = [φ_j·N(x^(i);μ_j,Σ_j)] / [Σ_l φ_l·N(x^(i);μ_l,Σ_l)]
-```
+
+$$w_j^{(i)} = P(z^{(i)}=j|x^{(i)};\theta) = \frac{\phi_j \cdot \mathcal{N}(x^{(i)};\mu_j,\Sigma_j)}{\sum_l \phi_l \cdot \mathcal{N}(x^{(i)};\mu_l,\Sigma_l)}$$
 
 **M-step**: Update parameters
-```
-φ_j = (1/m)·Σ_i w_j^(i)
 
-μ_j = Σ_i w_j^(i)·x^(i) / Σ_i w_j^(i)
+$$\phi_j = \frac{1}{m}\sum_i w_j^{(i)}$$
 
-Σ_j = Σ_i w_j^(i)·(x^(i)-μ_j)(x^(i)-μ_j)^T / Σ_i w_j^(i)
-```
+$$\mu_j = \frac{\sum_i w_j^{(i)} x^{(i)}}{\sum_i w_j^{(i)}}$$
+
+$$\Sigma_j = \frac{\sum_i w_j^{(i)}(x^{(i)}-\mu_j)(x^{(i)}-\mu_j)^T}{\sum_i w_j^{(i)}}$$
 
 **Advantages over K-Means**:
 - Soft assignments (probabilistic)
@@ -668,50 +642,46 @@ w_j^(i) = P(z^(i)=j|x^(i);θ)
 
 **Mathematical Foundation**:
 
-**Eigenvalue Problem**: `Az = λz`
-- `A`: matrix
-- `z`: eigenvector
-- `λ`: eigenvalue
+**Eigenvalue Problem**: $Az = \lambda z$
+- $A$: matrix
+- $z$: eigenvector
+- $\lambda$: eigenvalue
 
-**Spectral Theorem**: Symmetric matrix `A` can be diagonalized:
-```
-A = UΛU^T
-```
-Where `U` is orthogonal matrix of eigenvectors, `Λ` is diagonal matrix of eigenvalues
+**Spectral Theorem**: Symmetric matrix $A$ can be diagonalized:
+
+$$A = U\Lambda U^T$$
+
+Where $U$ is orthogonal matrix of eigenvectors, $\Lambda$ is diagonal matrix of eigenvalues
 
 **PCA Algorithm**:
 
 1. **Standardize data**:
-   ```
-   x̃ = (x - μ)/σ
-   ```
+
+   $$\tilde{x} = \frac{x - \mu}{\sigma}$$
+
    (Zero mean, unit variance per feature)
 
 2. **Compute covariance matrix**:
-   ```
-   Σ = (1/m)·Σ_{i=1}^m x^(i)(x^(i))^T
-   ```
+
+   $$\Sigma = \frac{1}{m}\sum_{i=1}^m x^{(i)}(x^{(i)})^T$$
 
 3. **Compute eigendecomposition**:
-   ```
-   Σ = UΛU^T
-   ```
-   Sort eigenvalues: `λ₁ ≥ λ₂ ≥ ... ≥ λ_n`
+
+   $$\Sigma = U\Lambda U^T$$
+
+   Sort eigenvalues: $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n$
 
 4. **Select top k eigenvectors**:
-   ```
-   U_k = [u₁, u₂, ..., u_k]
-   ```
+
+   $$U_k = [u_1, u_2, \ldots, u_k]$$
 
 5. **Project data**:
-   ```
-   z^(i) = U_k^T x^(i)
-   ```
+
+   $$z^{(i)} = U_k^T x^{(i)}$$
 
 **Variance Explained**:
-```
-Variance ratio = Σ_{i=1}^k λ_i / Σ_{j=1}^n λ_j
-```
+
+$$\text{Variance ratio} = \frac{\sum_{i=1}^k \lambda_i}{\sum_{j=1}^n \lambda_j}$$
 
 **Choosing k**:
 - Cumulative variance threshold (e.g., 95%)
@@ -719,10 +689,10 @@ Variance ratio = Σ_{i=1}^k λ_i / Σ_{j=1}^n λ_j
 - Cross-validation on downstream task
 
 **Reconstruction**:
-```
-x̂^(i) = U_k z^(i)
-Reconstruction error = ||x^(i) - x̂^(i)||²
-```
+
+$$\hat{x}^{(i)} = U_k z^{(i)}$$
+
+$$\text{Reconstruction error} = \|x^{(i)} - \hat{x}^{(i)}\|^2$$
 
 **Applications**:
 - Dimensionality reduction
@@ -748,49 +718,43 @@ Reconstruction error = ||x^(i) - x̂^(i)||²
 **Goal**: Find statistically independent source signals from mixed observations
 
 **Model Assumption**:
-```
-x = As
-```
-Where:
-- `x`: observed signals (mixed)
-- `s`: source signals (independent)
-- `A`: mixing matrix
 
-**Objective**: Find unmixing matrix `W = A^(-1)` such that:
-```
-s = Wx
-```
+$$x = As$$
+
+Where:
+- $x$: observed signals (mixed)
+- $s$: source signals (independent)
+- $A$: mixing matrix
+
+**Objective**: Find unmixing matrix $W = A^{-1}$ such that:
+
+$$s = Wx$$
 
 **Independence Assumption**:
-```
-P(s) = Π_{i=1}^n P(s_i)
-```
+
+$$P(s) = \prod_{i=1}^n P(s_i)$$
 
 **Bell-Sejnowski Algorithm**:
 
 **Likelihood**:
-```
-p(x) = Π_{i=1}^n p_s(w_i^T x)·|det(W)|
-```
+
+$$p(x) = \prod_{i=1}^n p_s(w_i^T x) \cdot |\det(W)|$$
 
 **Log-likelihood**:
-```
-ℓ(W) = Σ_{i=1}^m [Σ_j log(g'(w_j^T x^(i))) + log|det(W)|]
-```
+
+$$\ell(W) = \sum_{i=1}^m \left[\sum_j \log(g'(w_j^T x^{(i)})) + \log|\det(W)|\right]$$
 
 **Update Rule** (stochastic gradient ascent):
-```
-W := W + α·[(1-2g(Wx^(i)))(x^(i))^T + (W^T)^(-1)]
-```
 
-Where `g(s) = 1/(1+e^(-s))` is sigmoid
+$$W := W + \alpha \left[(1-2g(Wx^{(i)}))(x^{(i)})^T + (W^T)^{-1}\right]$$
+
+Where $g(s) = \frac{1}{1+e^{-s}}$ is sigmoid
 
 **Preprocessing**:
 1. **Centering**: Subtract mean
 2. **Whitening**: Decorrelate and normalize variance
-   ```
-   x_white = Σ^(-1/2)(x - μ)
-   ```
+
+   $$x_{\text{white}} = \Sigma^{-1/2}(x - \mu)$$
 
 **Contrast Functions** (alternatives to likelihood):
 - **Negentropy**: `J(s) = H(s_gauss) - H(s)`
@@ -1094,8 +1058,8 @@ CV = (1/k)·Σ_{i=1}^k Error_i
 **Probably Approximately Correct (PAC)**:
 
 A hypothesis class is PAC-learnable if:
-- With probability ≥ `1-δ` (probably)
-- We can find hypothesis with error ≤ `ε` (approximately correct)
+- With probability ≥ $1-\delta$ (probably)
+- We can find hypothesis with error ≤ $\varepsilon$ (approximately correct)
 - Using polynomial samples and computation
 
 **Assumptions**:
@@ -1103,27 +1067,24 @@ A hypothesis class is PAC-learnable if:
 2. Examples are independent and identically distributed (i.i.d.)
 
 **Training Error**:
-```
-ε̂(h) = (1/m)·Σ_{i=1}^m 1_{h(x^(i))≠y^(i)}
-```
+
+$$\hat{\varepsilon}(h) = \frac{1}{m}\sum_{i=1}^m \mathbb{1}_{\{h(x^{(i)})\neq y^{(i)}\}}$$
 
 **Generalization Error**:
-```
-ε(h) = P_{(x,y)~D}[h(x) ≠ y]
-```
 
-**Goal**: Bound `ε(h)` using `ε̂(h)`
+$$\varepsilon(h) = P_{(x,y)\sim\mathcal{D}}[h(x) \neq y]$$
+
+**Goal**: Bound $\varepsilon(h)$ using $\hat{\varepsilon}(h)$
 
 ---
 
 ### VC Dimension
 
-**Shattering**: Hypothesis class `H` shatters set `S` if it can realize all `2^|S|` labelings
+**Shattering**: Hypothesis class $\mathcal{H}$ shatters set $S$ if it can realize all $2^{|S|}$ labelings
 
-**VC Dimension**: Size of largest set that `H` can shatter
-```
-VC(H) = max{|S|: H shatters S}
-```
+**VC Dimension**: Size of largest set that $\mathcal{H}$ can shatter
+
+$$\text{VC}(\mathcal{H}) = \max\{|S|: \mathcal{H} \text{ shatters } S\}$$
 
 **Examples**:
 
@@ -1143,31 +1104,27 @@ VC(H) = max{|S|: H shatters S}
 
 ### Generalization Bounds
 
-**Finite Hypothesis Class** (`|H| = k`):
+**Finite Hypothesis Class** ($|\mathcal{H}| = k$):
 
-With probability ≥ `1-δ`:
-```
-ε(ĥ) ≤ ε̂(ĥ) + √[(1/2m)·log(2k/δ)]
-```
+With probability ≥ $1-\delta$:
+
+$$\varepsilon(\hat{h}) \leq \hat{\varepsilon}(\hat{h}) + \sqrt{\frac{1}{2m}\log\left(\frac{2k}{\delta}\right)}$$
 
 Or equivalently:
-```
-ε(ĥ) ≤ min_{h∈H} ε(h) + 2√[(1/2m)·log(2k/δ)]
-```
 
-**Infinite Hypothesis Class** (VC dimension `d`):
+$$\varepsilon(\hat{h}) \leq \min_{h\in\mathcal{H}} \varepsilon(h) + 2\sqrt{\frac{1}{2m}\log\left(\frac{2k}{\delta}\right)}$$
 
-**Vapnik's Theorem**: With probability ≥ `1-δ`:
-```
-ε(ĥ) ≤ ε̂(ĥ) + O(√[(d/m)·log(m/d) + (1/m)·log(1/δ)])
-```
+**Infinite Hypothesis Class** (VC dimension $d$):
+
+**Vapnik's Theorem**: With probability ≥ $1-\delta$:
+
+$$\varepsilon(\hat{h}) \leq \hat{\varepsilon}(\hat{h}) + O\left(\sqrt{\frac{d}{m}\log\left(\frac{m}{d}\right) + \frac{1}{m}\log\left(\frac{1}{\delta}\right)}\right)$$
 
 **Sample Complexity** (number of examples needed):
 
-For `ε(h) ≤ ε + ε*` with probability ≥ `1-δ`:
-```
-m = O((d/ε²)·log(1/δ))
-```
+For $\varepsilon(h) \leq \varepsilon + \varepsilon^*$ with probability ≥ $1-\delta$:
+
+$$m = O\left(\frac{d}{\varepsilon^2}\log\left(\frac{1}{\delta}\right)\right)$$
 
 **Implications**:
 1. More complex models (higher VC dimension) need more data
@@ -1178,17 +1135,16 @@ m = O((d/ε²)·log(1/δ))
 
 ### Bias-Variance Decomposition
 
-**For regression** (`y = f(x) + ε`, where `E[ε] = 0`, `Var(ε) = σ²`):
+**For regression** ($y = f(x) + \varepsilon$, where $\mathbb{E}[\varepsilon] = 0$, $\text{Var}(\varepsilon) = \sigma^2$):
 
 Expected prediction error:
-```
-E[(y - ĥ(x))²] = Bias(ĥ(x))² + Var(ĥ(x)) + σ²
-```
+
+$$\mathbb{E}[(y - \hat{h}(x))^2] = \text{Bias}(\hat{h}(x))^2 + \text{Var}(\hat{h}(x)) + \sigma^2$$
 
 Where:
-- **Bias**: `E[ĥ(x)] - f(x)` - systematic error
-- **Variance**: `E[(ĥ(x) - E[ĥ(x)])²]` - sensitivity to training data
-- **Irreducible error**: `σ²` - noise in data
+- **Bias**: $\mathbb{E}[\hat{h}(x)] - f(x)$ - systematic error
+- **Variance**: $\mathbb{E}[(\hat{h}(x) - \mathbb{E}[\hat{h}(x)])^2]$ - sensitivity to training data
+- **Irreducible error**: $\sigma^2$ - noise in data
 
 **Trade-off**:
 - Simple models: High bias, low variance
@@ -1205,44 +1161,40 @@ Where:
 **Purpose**: Prevent overfitting by constraining model complexity
 
 **Ridge Regression (L2)**:
-```
-J(θ) = ||Xθ - y||² + λ||θ||₂²
-```
+
+$$J(\theta) = \|X\theta - y\|^2 + \lambda\|\theta\|_2^2$$
 
 **Closed-form solution**:
-```
-θ̂ = (X^T X + λI)^(-1) X^T y
-```
+
+$$\hat{\theta} = (X^T X + \lambda I)^{-1} X^T y$$
 
 **Effect**:
 - Shrinks coefficients toward zero
 - Never exactly zero
 - Stable with correlated features
-- Equivalent to Gaussian prior on `θ`
+- Equivalent to Gaussian prior on $\theta$
 
 ---
 
 **LASSO (L1)**:
-```
-J(θ) = ||Xθ - y||² + λ||θ||₁
-```
+
+$$J(\theta) = \|X\theta - y\|^2 + \lambda\|\theta\|_1$$
 
 **Effect**:
 - Shrinks coefficients toward zero
 - Can set coefficients exactly to zero (feature selection)
 - Unstable with correlated features
-- Equivalent to Laplace prior on `θ`
+- Equivalent to Laplace prior on $\theta$
 
 **No closed-form** - use coordinate descent or proximal methods
 
 ---
 
 **Elastic Net**:
-```
-J(θ) = ||Xθ - y||² + λ[(1-α)||θ||₁ + α||θ||₂²]
-```
 
-Where `α ∈ [0,1]` balances L1/L2
+$$J(\theta) = \|X\theta - y\|^2 + \lambda[(1-\alpha)\|\theta\|_1 + \alpha\|\theta\|_2^2]$$
+
+Where $\alpha \in [0,1]$ balances L1/L2
 
 **Effect**:
 - Combines benefits of Ridge and LASSO
@@ -1251,8 +1203,8 @@ Where `α ∈ [0,1]` balances L1/L2
 - Good for correlated features
 
 **Special cases**:
-- `α = 0`: Pure LASSO
-- `α = 1`: Pure Ridge
+- $\alpha = 0$: Pure LASSO
+- $\alpha = 1$: Pure Ridge
 
 ---
 
