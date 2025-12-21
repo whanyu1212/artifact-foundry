@@ -259,9 +259,9 @@ $$\hat{y} = \arg\max_y P(y) \prod_{i=1}^n P(x_i|y)$$
 
 **Maximum Likelihood Estimates**:
 
-$$P(y=k) = \frac{\#\{j: y^{(j)}=k\}}{m}$$
+$$P(y=k) = \frac{|\{j: y^{(j)}=k\}|}{m}$$
 
-$$P(x_i=l|y=k) = \frac{\#\{j: y^{(j)}=k \text{ and } x_i^{(j)}=l\}}{\#\{j: y^{(j)}=k\}}$$
+$$P(x_i=l|y=k) = \frac{|\{j: y^{(j)}=k \text{ and } x_i^{(j)}=l\}|}{|\{j: y^{(j)}=k\}|}$$
 
 **Variants**:
 - **Gaussian Naive Bayes**: Continuous features, assume normal distribution
@@ -270,7 +270,7 @@ $$P(x_i=l|y=k) = \frac{\#\{j: y^{(j)}=k \text{ and } x_i^{(j)}=l\}}{\#\{j: y^{(j
 
 **Laplace Smoothing** (avoid zero probabilities):
 
-$$P(x_i=l|y=k) = \frac{\#\{\text{matches}\} + 1}{\#\{y=k\} + |V|}$$
+$$P(x_i=l|y=k) = \frac{|\{\text{matches}\}| + 1}{|\{y=k\}| + |V|}$$
 
 **Applications**:
 - Text classification
