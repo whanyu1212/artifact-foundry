@@ -1,0 +1,67 @@
+[project]
+name = "artifact-foundry"
+version = "0.1.0"
+description = "Personal learning repository for hands-on machine learning, deep learning, and data science implementations"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+]
+
+[project.optional-dependencies]
+# Classical Machine Learning
+ml = [
+    "scikit-learn>=1.3.0",
+    "scipy>=1.11.0",
+    "statsmodels>=0.14.0",
+    "xgboost>=2.0.0",
+    "lightgbm>=4.0.0",
+]
+
+# Deep Learning
+dl = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "tensorflow>=2.13.0",
+    "keras>=2.13.0",
+]
+
+# Visualization
+viz = [
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "plotly>=5.14.0",
+    "bokeh>=3.1.0",
+]
+
+# Jupyter & Notebooks
+notebooks = [
+    "jupyter>=1.0.0",
+    "jupyterlab>=4.0.0",
+    "ipykernel>=6.23.0",
+    "ipywidgets>=8.0.0",
+    "notebook>=7.0.0",
+]
+
+# Development Tools
+dev = [
+    "pytest>=7.3.0",
+    "black>=23.3.0",
+    "ruff>=0.0.270",
+    "mypy>=1.3.0",
+    "isort>=5.12.0",
+]
+
+# All dependencies (convenience group)
+all = [
+    "artifact-foundry[ml,dl,viz,notebooks,dev]",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# No packages to install - this is just for dependency management
+py-modules = []
