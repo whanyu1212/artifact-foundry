@@ -127,10 +127,17 @@ Add project repository links to `PROJECTS.md` when completing, starting, or shar
 4. Add to appropriate topic's `resources.md`
 
 ### Code Style
-- **Python**: Follow PEP 8, type hints where helpful for learning
-- **Comments**: Explain concepts and non-obvious decisions, not syntax
-- **Tests**: Include for all code snippets to verify correctness
-- **Documentation**: Focus on educational value and understanding
+
+All Python code must follow the detailed standards in `.claude/rules/python-snippets.md`.
+
+**Key requirements:**
+- **Documentation**: Google-style docstrings with type annotations, examples
+- **Type Hints**: All parameters and return values must be annotated
+- **Comments**: Explain concepts and "why", not syntax or "what"
+- **Tests**: Every snippet requires tests to verify correctness
+- **Educational Focus**: Code teaches concepts, includes formulas and theory
+
+See [.claude/rules/python-snippets.md](.claude/rules/python-snippets.md) for complete standards.
 
 ## Current Focus Areas
 
