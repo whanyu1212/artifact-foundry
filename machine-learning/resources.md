@@ -9,6 +9,13 @@
 
 ## Books
 
+### Core Machine Learning Textbooks
+
+- [An Introduction to Statistical Learning](https://www.statlearning.com/) - James, Witten, Hastie, Tibshirani - Accessible introduction to statistical learning with R examples; essential chapters on cross-validation (Ch 5), resampling methods, and tree-based methods (Ch 8)
+- [The Elements of Statistical Learning](https://hastie.su.stanford.edu/ElemStatLearn/) - Hastie, Tibshirani, Friedman - Comprehensive mathematical treatment of statistical learning; authoritative reference for model assessment (Ch 7), trees and ensemble methods (Ch 9-10, 15, 16)
+- [Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow (3rd Edition)](https://www.oreilly.com/library/view/hands-on-machine-learning/9781098125967/) - Aurélien Géron - Practical Python implementations using scikit-learn; excellent for ensemble methods, decision trees, and hyperparameter tuning
+- [Pattern Recognition and Machine Learning](https://www.microsoft.com/en-us/research/publication/pattern-recognition-machine-learning/) - Christopher Bishop - Bayesian perspective on machine learning with strong theoretical foundations; comprehensive coverage of model selection and evaluation
+
 ## Papers
 
 - Breiman, L. (1996) "Bagging Predictors" - Original paper introducing Bootstrap Aggregating (bagging) ensemble method
@@ -52,7 +59,25 @@
 
 ## Documentation
 
+### Scikit-learn
+
+- [Cross-validation - scikit-learn](https://scikit-learn.org/stable/modules/cross_validation.html) - Official guide to cross-validation strategies, model evaluation, and the model_selection module
+- [Decision Trees - scikit-learn](https://scikit-learn.org/stable/modules/tree.html) - User guide for decision tree algorithms
+- [DecisionTreeClassifier - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html) - API reference for decision tree classification
+- [DecisionTreeRegressor - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html) - API reference for decision tree regression
+- [Ensemble Methods - scikit-learn](https://scikit-learn.org/stable/modules/ensemble.html) - User guide covering bagging, boosting, and voting methods
+- [GradientBoostingClassifier - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingClassifier.html) - API reference for gradient boosting classification
+- [GridSearchCV - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) - API reference for exhaustive grid search with cross-validation
+- [RandomForestClassifier - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html) - API reference for random forest classification
+- [RandomizedSearchCV - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html) - API reference for randomized hyperparameter search
+
+### Ensemble Libraries
+
 - [BaggingClassifier - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.BaggingClassifier.html) - Official scikit-learn bagging implementation documentation
 - [CatBoost Documentation](https://catboost.ai/) - Official CatBoost documentation for categorical boosting
 - [LightGBM Documentation](https://lightgbm.readthedocs.io/) - Official LightGBM documentation
 - [XGBoost Documentation](https://xgboost.readthedocs.io/) - Official XGBoost documentation
+
+### Hyperparameter Optimization
+
+- [Optuna Documentation](https://optuna.readthedocs.io/) - Official documentation for Optuna hyperparameter optimization framework with pruning, visualization, and distributed optimization
