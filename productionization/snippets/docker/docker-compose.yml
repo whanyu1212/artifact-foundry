@@ -1,0 +1,318 @@
+# Production-Ready Docker Compose Configuration
+#
+# This file demonstrates a complete multi-service application stack:
+# - PostgreSQL database with persistence and health checks
+# - Redis for caching/sessions
+# - Python web application
+# - Nginx reverse proxy
+# - Prometheus for monitoring
+#
+# Key concepts demonstrated:
+# - Service dependencies with health checks
+# - Named volumes for data persistence
+# - Custom networks for service isolation
+# - Environment variable management
+# - Resource limits
+# - Restart policies
+#
+# Usage:
+#   Development: docker compose up
+#   Production:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   Stop:        docker compose down
+#   With logs:   docker compose logs -f [service_name]
+
+version: '3.8'
+
+# ============================================================================
+# Services
+# ============================================================================
+services:
+  # --------------------------------------------------------------------------
+  # PostgreSQL Database
+  # Persistent data storage for application
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: myapp_postgres
+
+    # Restart policy: restart unless explicitly stopped
+    # Options: no, always, on-failure, unless-stopped
+    restart: unless-stopped
+
+    # Environment variables for database initialization
+    # In production, use .env file and never commit secrets
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_USER: myapp_user
+      # ${VAR} syntax reads from .env file in same directory
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      # Set timezone for consistent timestamps
+      TZ: UTC
+      PGTZ: UTC
+
+    # Volume mounting for data persistence
+    # Format: volume_name:container_path
+    # Without volume, all data is lost when container is removed
+    volumes:
+      # Named volume for database data (managed by Docker)
+      - postgres_data:/var/lib/postgresql/data
+      # Bind mount for initialization scripts (run on first startup)
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    # Port mapping (host:container)
+    # Exposing to host allows local debugging with tools like pgAdmin
+    # In production, remove this and only expose via application network
+    ports:
+      - "5432:5432"
+
+    # Health check to verify database is ready
+    # Other services can wait for this before starting
+    healthcheck:
+      # pg_isready checks if PostgreSQL is accepting connections
+      test: ["CMD-SHELL", "pg_isready -U myapp_user -d myapp"]
+      interval: 10s      # Check every 10 seconds
+      timeout: 5s        # Command must complete within 5 seconds
+      retries: 5         # Allow 5 failures before marking unhealthy
+      start_period: 30s  # Grace period before first check
+
+    # Networks this service connects to
+    # Backend network isolates database from external access
+    networks:
+      - backend
+
+    # Resource limits (uncomment for production)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'
+    #       memory: 2G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 512M
+
+  # --------------------------------------------------------------------------
+  # Redis Cache
+  # In-memory data store for caching and session management
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: myapp_redis
+    restart: unless-stopped
+
+    # Redis command configuration
+    # --appendonly yes: Enable persistence to disk (AOF mode)
+    # Without this, data is lost on restart
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+    volumes:
+      # Persist Redis data (for AOF file)
+      - redis_data:/data
+      # Optional: Custom Redis configuration
+      # - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+
+    ports:
+      - "6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+    networks:
+      - backend
+
+  # --------------------------------------------------------------------------
+  # Web Application
+  # Main application service (Python FastAPI/Flask example)
+  # --------------------------------------------------------------------------
+  web:
+    # Build from Dockerfile in current directory
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Build arguments (passed to Dockerfile ARG instructions)
+      args:
+        BUILD_ENV: production
+        PYTHON_VERSION: 3.11
+
+    container_name: myapp_web
+    restart: unless-stopped
+
+    # Port mapping
+    # Expose application to host on port 8080
+    ports:
+      - "8080:8080"
+
+    # Environment variables for application configuration
+    environment:
+      # Application settings
+      APP_ENV: production
+      DEBUG: "false"
+      LOG_LEVEL: info
+
+      # Database connection
+      # References postgres service by name (Docker DNS resolution)
+      DATABASE_URL: postgresql://myapp_user:${DB_PASSWORD:-changeme}@postgres:5432/myapp
+
+      # Redis connection
+      REDIS_URL: redis://redis:6379/0
+
+      # Application secrets (should come from .env file)
+      SECRET_KEY: ${SECRET_KEY}
+      API_KEY: ${API_KEY}
+
+    # Alternative: Load all environment variables from file
+    # env_file:
+    #   - .env.production
+
+    # Volume mounts
+    volumes:
+      # Application uploads (persistent storage)
+      - uploads:/app/uploads
+      # Application logs (accessible from host)
+      - ./logs:/app/logs
+      # Development only: mount source code for live reload
+      # - ./app:/app/app
+
+    # Service dependencies
+    # Web service waits for database and redis to be healthy before starting
+    depends_on:
+      postgres:
+        condition: service_healthy  # Wait for health check to pass
+      redis:
+        condition: service_started  # Just wait for container to start
+
+    # Connect to both frontend (for nginx) and backend (for db/redis)
+    networks:
+      - frontend
+      - backend
+
+    # Health check for this service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s  # Allow more time for app initialization
+
+  # --------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # Handles SSL termination, load balancing, static file serving
+  # --------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: myapp_nginx
+    restart: unless-stopped
+
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+
+    volumes:
+      # Custom nginx configuration
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # SSL certificates
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # Static files served by nginx (faster than app server)
+      - ./static:/usr/share/nginx/html/static:ro
+      # Logs accessible from host
+      - ./logs/nginx:/var/log/nginx
+
+    depends_on:
+      - web
+
+    # Only connects to frontend network
+    # Cannot directly access database (security best practice)
+    networks:
+      - frontend
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # --------------------------------------------------------------------------
+  # Prometheus Monitoring (Optional)
+  # Collects metrics from application and infrastructure
+  # --------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: myapp_prometheus
+    restart: unless-stopped
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+
+    volumes:
+      # Prometheus configuration
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Persistent storage for metrics
+      - prometheus_data:/prometheus
+
+    ports:
+      - "9090:9090"
+
+    networks:
+      - backend
+
+    # Optional: Grafana for visualization
+    # grafana:
+    #   image: grafana/grafana:latest
+    #   ports:
+    #     - "3000:3000"
+    #   volumes:
+    #     - grafana_data:/var/lib/grafana
+    #   networks:
+    #     - backend
+
+# ============================================================================
+# Volumes
+# Named volumes are managed by Docker and persist data between container restarts
+# Location on host: /var/lib/docker/volumes/ (Linux)
+# ============================================================================
+volumes:
+  # Database data persistence
+  postgres_data:
+    driver: local
+
+  # Redis data persistence
+  redis_data:
+    driver: local
+
+  # Application uploads
+  uploads:
+    driver: local
+
+  # Prometheus metrics
+  prometheus_data:
+    driver: local
+
+  # Optional: Use external volume (created separately)
+  # postgres_data:
+  #   external: true
+
+# ============================================================================
+# Networks
+# Custom networks provide isolation and enable service discovery by name
+# ============================================================================
+networks:
+  # Frontend network: nginx <-> web
+  # Public-facing services
+  frontend:
+    driver: bridge
+    # Optional: Custom subnet
+    # ipam:
+    #   config:
+    #     - subnet: 172.20.0.0/16
+
+  # Backend network: web <-> db/redis
+  # Internal services, not exposed to external access
+  backend:
+    driver: bridge
+    # Internal network: not accessible from host
+    internal: false  # Set to true for complete isolation

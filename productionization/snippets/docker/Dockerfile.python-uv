@@ -1,0 +1,85 @@
+# Python Dockerfile with UV (Modern, Fast)
+#
+# UV is a blazing-fast Python package installer and resolver (10-100x faster than pip)
+# https://github.com/astral-sh/uv
+#
+# Advantages over pip:
+# - Much faster installs (written in Rust)
+# - Better dependency resolution
+# - Lock file for reproducibility
+# - Compatible with requirements.txt and pyproject.toml
+#
+# This demonstrates:
+# - Using uv for fast, reproducible builds
+# - Proper layer caching with pyproject.toml + uv.lock
+# - Multi-stage build to exclude uv from final image
+
+# ============================================================================
+# Stage 1: Builder with UV
+# ============================================================================
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install uv
+# Using the official installer (small, fast)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy dependency files for layer caching
+# Only these files change rarely, so Docker caches this layer
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv
+# --no-dev excludes development dependencies
+# --locked ensures we use exact versions from uv.lock (reproducible)
+# --system installs globally (not in a venv, since we're in a container)
+RUN uv pip install --system --no-dev --locked
+
+# Alternative: If you only have requirements.txt
+# RUN uv pip install --system -r requirements.txt
+
+# ============================================================================
+# Stage 2: Runtime (minimal)
+# ============================================================================
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    APP_HOME=/app
+
+WORKDIR $APP_HOME
+
+# Copy installed packages from builder
+# This is the magic - we get all the packages without needing uv in final image
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY . .
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser $APP_HOME
+USER appuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"
+
+CMD ["python", "app.py"]
+
+# ============================================================================
+# Build commands:
+# ============================================================================
+# First, generate uv.lock (on your machine, not in Docker):
+#   uv lock
+#
+# Then build:
+#   docker build -f Dockerfile.python-uv -t myapp:latest .
+#
+# Why this is faster:
+# - uv resolves dependencies ~10-100x faster than pip
+# - uv.lock ensures reproducible builds
+# - Layer caching still works (pyproject.toml + uv.lock rarely change)
+# - Final image doesn't include uv (smaller)

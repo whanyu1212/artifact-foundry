@@ -1,0 +1,114 @@
+# Production-Ready Python Application Dockerfile
+#
+# This Dockerfile demonstrates best practices for containerizing Python applications:
+# - Multi-stage build to reduce final image size
+# - Non-root user for security
+# - Proper dependency management
+# - Layer caching optimization
+# - Health checks for production readiness
+#
+# Assumes application structure:
+# - app.py (main application)
+# - requirements.txt (Python dependencies)
+# - static/ (optional static files)
+
+# ============================================================================
+# Stage 1: Builder
+# Purpose: Compile dependencies and build wheels
+# This stage includes build tools that aren't needed at runtime
+# ============================================================================
+FROM python:3.11 as builder
+
+WORKDIR /build
+
+# Install build dependencies
+# Note: gcc, g++, and python3-dev are needed to compile certain Python packages
+# We clean up apt cache in the same RUN command to reduce layer size
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy only requirements first for better layer caching
+# If requirements.txt doesn't change, Docker reuses this cached layer
+COPY requirements.txt .
+
+# Build wheel files instead of installing directly
+# Wheels are pre-compiled packages that install faster
+# --no-deps prevents pip from installing dependencies of dependencies
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels \
+    -r requirements.txt
+
+# ============================================================================
+# Stage 2: Runtime
+# Purpose: Minimal production image with only runtime dependencies
+# Final image doesn't include gcc, g++, or other build tools
+# ============================================================================
+FROM python:3.11-slim
+
+# Set environment variables
+# PYTHONUNBUFFERED: Force Python to print output immediately (important for logs)
+# PYTHONDONTWRITEBYTECODE: Prevent Python from writing .pyc files
+# APP_HOME: Application directory
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    APP_HOME=/app
+
+WORKDIR $APP_HOME
+
+# Install only runtime system dependencies (if needed)
+# Example: libpq-dev for PostgreSQL, libgomp1 for scikit-learn
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        libgomp1 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy pre-built wheels from builder stage
+COPY --from=builder /build/wheels /wheels
+
+# Install from wheels (much faster than building again)
+# --no-cache-dir prevents pip from caching downloads, reducing image size
+RUN pip install --no-cache-dir /wheels/* && \
+    rm -rf /wheels
+
+# Copy application code
+# This is done AFTER installing dependencies so code changes don't invalidate
+# the dependency layer cache
+COPY . .
+
+# Create non-root user for security
+# Running as root is a security risk - if container is compromised,
+# attacker has limited privileges
+# -m creates home directory, -u sets explicit UID for consistency
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser $APP_HOME
+
+# Switch to non-root user
+USER appuser
+
+# Expose port (documentation only, doesn't actually publish)
+# Actual port publishing happens with -p flag: docker run -p 8080:8080
+EXPOSE 8080
+
+# Health check for production environments
+# Container orchestrators (Kubernetes, ECS) use this to determine if container is healthy
+# --interval: How often to check
+# --timeout: How long to wait for response
+# --start-period: Grace period before first check
+# --retries: Number of failures before marking unhealthy
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Default command
+# Using exec form (JSON array) is preferred over shell form
+# Exec form allows proper signal handling (SIGTERM for graceful shutdown)
+CMD ["python", "app.py"]
+
+# Alternative: Using uvicorn for async frameworks (FastAPI, Starlette)
+# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+
+# Alternative: Using gunicorn for production WSGI apps (Flask, Django)
+# CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "app:app"]

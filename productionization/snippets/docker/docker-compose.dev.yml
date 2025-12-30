@@ -1,0 +1,162 @@
+# Docker Compose Override for Development Environment
+#
+# This file demonstrates development-specific configurations:
+# - Live code reloading with volume mounts
+# - Debug mode enabled
+# - Exposed database ports for local tools
+# - Reduced resource constraints
+# - Additional development services (pgAdmin, Redis Commander)
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Or simply: docker compose up (this file is auto-loaded as docker-compose.override.yml)
+#
+# To use this as override, rename to: docker-compose.override.yml
+
+version: '3.8'
+
+services:
+  # Override postgres for development
+  postgres:
+    # Expose port to host for local database tools (pgAdmin, DBeaver, etc.)
+    ports:
+      - "5432:5432"
+
+    # Development environment variables
+    environment:
+      # Simpler password for dev (never use in production!)
+      POSTGRES_PASSWORD: devpassword
+
+    # Mount initialization scripts for dev data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Add sample data for development
+      - ./dev/seed-data.sql:/docker-entrypoint-initdb.d/99-seed.sql:ro
+
+  # Override redis for development
+  redis:
+    ports:
+      - "6379:6379"
+
+    # Development-friendly Redis config
+    command: redis-server --appendonly yes --loglevel debug
+
+  # Override web application for development
+  web:
+    # Use development Dockerfile with hot-reload
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+
+    # Development environment
+    environment:
+      APP_ENV: development
+      DEBUG: "true"
+      LOG_LEVEL: debug
+      DATABASE_URL: postgresql://myapp_user:devpassword@postgres:5432/myapp
+      REDIS_URL: redis://redis:6379/0
+      # Enable auto-reload for development frameworks
+      FLASK_ENV: development
+      FLASK_DEBUG: 1
+      # FastAPI auto-reload
+      RELOAD: "true"
+
+    # Mount source code for live reloading
+    # Changes to code are immediately reflected without rebuild
+    volumes:
+      - ./app:/app/app:ro
+      # Mount tests for running in container
+      - ./tests:/app/tests:ro
+      # Development uploads (don't use named volume)
+      - ./dev/uploads:/app/uploads
+      # Development logs
+      - ./dev/logs:/app/logs
+
+    # Override command with development server
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+    # Or for Flask:
+    # command: flask run --host=0.0.0.0 --port=8080 --debug
+
+    # Expose debugger port (for PyCharm, VS Code remote debugging)
+    ports:
+      - "8080:8080"
+      - "5678:5678"  # Python debugger (debugpy)
+
+  # Override nginx for development
+  nginx:
+    # Use development nginx config (different logging, CORS, etc.)
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./static:/usr/share/nginx/html/static:ro
+
+    # Only HTTP in dev (no SSL)
+    ports:
+      - "80:80"
+
+  # --------------------------------------------------------------------------
+  # Additional Development Services
+  # --------------------------------------------------------------------------
+
+  # pgAdmin for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: myapp_pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+
+    ports:
+      - "5050:80"
+
+    volumes:
+      # Persist pgAdmin configuration
+      - pgadmin_data:/var/lib/pgadmin
+
+    networks:
+      - backend
+
+    depends_on:
+      - postgres
+
+  # Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: myapp_redis_commander
+    restart: unless-stopped
+
+    environment:
+      REDIS_HOSTS: local:redis:6379
+
+    ports:
+      - "8081:8081"
+
+    networks:
+      - backend
+
+    depends_on:
+      - redis
+
+  # Mailhog for email testing (catches all emails)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: myapp_mailhog
+    restart: unless-stopped
+
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+
+    networks:
+      - backend
+
+# Development volumes
+volumes:
+  pgadmin_data:
+    driver: local
+
+# Note: Other volumes (postgres_data, redis_data) are inherited from base docker-compose.yml

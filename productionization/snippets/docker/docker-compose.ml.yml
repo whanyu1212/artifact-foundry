@@ -1,0 +1,117 @@
+# Docker Compose for Local ML Model Testing
+#
+# Simple setup for testing ML model serving locally before deploying to GKE
+# Not intended for production - use for development and testing only
+#
+# Usage:
+#   docker compose -f docker-compose.ml.yml up --build
+#   Test: curl http://localhost:8080/predict -X POST -d '{"data": [1,2,3]}'
+
+version: '3.8'
+
+services:
+  # --------------------------------------------------------------------------
+  # ML Model API
+  # Serves predictions via REST API
+  # --------------------------------------------------------------------------
+  ml-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.ml
+
+    container_name: ml_api
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      # Application config
+      PORT: 8080
+      MODEL_PATH: /app/models
+      LOG_LEVEL: info
+
+      # Optional: Model location in cloud storage
+      # GCS_MODEL_BUCKET: gs://your-bucket/models
+      # AWS_S3_BUCKET: s3://your-bucket/models
+
+      # Optional: Monitoring/observability
+      # ENABLE_METRICS: "true"
+      # ENABLE_TRACING: "true"
+
+    # Volume mount for local model testing
+    # Remove this in production - models should be in image or cloud storage
+    volumes:
+      - ./models:/app/models:ro
+
+    # Resource limits
+    # Adjust based on model size and inference requirements
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # --------------------------------------------------------------------------
+  # Redis (Optional)
+  # For caching predictions or rate limiting
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: ml_redis
+
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+    ports:
+      - "6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL (Optional)
+  # For logging predictions, A/B testing, model monitoring
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: ml_postgres
+
+    environment:
+      POSTGRES_DB: mlops
+      POSTGRES_USER: mluser
+      POSTGRES_PASSWORD: changeme
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mluser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

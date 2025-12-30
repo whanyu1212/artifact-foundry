@@ -1,0 +1,115 @@
+# Python Dockerfile with Poetry (Modern Dependency Management)
+#
+# Poetry provides:
+# - Dependency resolution and locking (poetry.lock)
+# - Separate dev and production dependencies
+# - Reproducible builds
+# - Better than requirements.txt, but slower than uv
+#
+# Challenges with Poetry in Docker:
+# - Need to install poetry first (extra layer)
+# - Must handle poetry.lock + pyproject.toml for caching
+# - Virtual environments in containers (usually unnecessary)
+#
+# This demonstrates the optimal pattern for using Poetry in Docker
+
+# ============================================================================
+# Stage 1: Builder with Poetry
+# ============================================================================
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install Poetry
+# Using official installer, pinned version for reproducibility
+ENV POETRY_VERSION=1.7.1 \
+    POETRY_HOME=/opt/poetry \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    curl -sSL https://install.python-poetry.org | python3 - && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+# Copy dependency files ONLY for layer caching
+# If these don't change, Docker reuses this cached layer
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies
+# --no-root: Don't install the project itself yet (we don't have the code)
+# --no-dev: Exclude development dependencies
+# --no-interaction: Don't ask for user input
+RUN poetry install --no-root --no-dev --no-interaction --no-ansi
+
+# Now copy the application code and install the project
+COPY . .
+RUN poetry install --only-root --no-interaction --no-ansi
+
+# ============================================================================
+# Stage 2: Runtime (minimal, no Poetry)
+# ============================================================================
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    APP_HOME=/app
+
+WORKDIR $APP_HOME
+
+# Copy installed packages from builder
+# Since we used POETRY_VIRTUALENVS_CREATE=false, packages are in system site-packages
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY . .
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser $APP_HOME
+USER appuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"
+
+CMD ["python", "app.py"]
+
+# ============================================================================
+# Alternative: Keep virtual environment (if preferred)
+# ============================================================================
+# If you want to use Poetry's venv approach:
+#
+# FROM python:3.11-slim as builder
+# ENV POETRY_VIRTUALENVS_IN_PROJECT=true
+# RUN poetry install --no-dev
+#
+# FROM python:3.11-slim
+# COPY --from=builder /build/.venv /app/.venv
+# ENV PATH="/app/.venv/bin:$PATH"
+# COPY . .
+# CMD ["python", "app.py"]
+
+# ============================================================================
+# Build commands:
+# ============================================================================
+# First, generate poetry.lock (on your machine):
+#   poetry lock
+#
+# Then build:
+#   docker build -f Dockerfile.python-poetry -t myapp:latest .
+#
+# Benefits:
+# - poetry.lock ensures exact dependency versions (reproducible)
+# - Separate dev/production dependencies
+# - Better dependency resolution than pip
+# - Layer caching still works
+#
+# Tradeoffs:
+# - Slower than uv
+# - More complex than pip + requirements.txt
+# - Need to install poetry in builder stage

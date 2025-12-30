@@ -1,0 +1,120 @@
+# Production-Ready Node.js Application Dockerfile
+#
+# This Dockerfile demonstrates multi-stage builds for Node.js applications:
+# - Separate dependency installation from application code
+# - Build stage for compiling TypeScript/bundling assets
+# - Minimal production image using alpine
+# - Security best practices
+#
+# Assumes application structure:
+# - package.json, package-lock.json
+# - src/ (source code)
+# - dist/ or build/ (compiled output)
+
+# ============================================================================
+# Stage 1: Dependencies
+# Purpose: Install production dependencies only
+# This stage is separate to leverage Docker layer caching
+# ============================================================================
+FROM node:18-alpine as dependencies
+
+WORKDIR /app
+
+# Copy package files
+# Copying only package*.json first allows Docker to cache node_modules
+# if dependencies haven't changed
+COPY package*.json ./
+
+# Install production dependencies only
+# --only=production excludes devDependencies (testing libs, build tools, etc.)
+# ci (clean install) is faster and more reliable than npm install in CI/CD
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# ============================================================================
+# Stage 2: Builder
+# Purpose: Install all dependencies and build the application
+# Includes devDependencies needed for TypeScript compilation, bundling, etc.
+# ============================================================================
+FROM node:18-alpine as builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies (including devDependencies)
+# These are needed for build tools like TypeScript, webpack, etc.
+RUN npm ci && \
+    npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Build the application
+# Examples:
+# - TypeScript: Compiles .ts to .js in dist/
+# - React/Vue: Bundles assets for production
+# - Next.js: Creates optimized production build
+RUN npm run build
+
+# ============================================================================
+# Stage 3: Production Runtime
+# Purpose: Minimal image with only runtime dependencies and built code
+# Final image is much smaller - only includes what's needed to run the app
+# ============================================================================
+FROM node:18-alpine
+
+# Set environment to production
+# This affects framework behavior (less logging, optimizations, etc.)
+ENV NODE_ENV=production \
+    APP_HOME=/app
+
+WORKDIR $APP_HOME
+
+# Install dumb-init to handle signals properly
+# Node.js doesn't handle SIGTERM correctly when running as PID 1
+# dumb-init ensures graceful shutdown in containers
+RUN apk add --no-cache dumb-init
+
+# Copy production dependencies from dependencies stage
+# This excludes devDependencies, reducing image size
+COPY --from=dependencies /app/node_modules ./node_modules
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+# Or if using different build output:
+# COPY --from=builder /app/build ./build
+
+# Copy package.json for metadata (version, scripts, etc.)
+COPY package*.json ./
+
+# Create non-root user
+# Running as root is a security risk
+# node user is built into the node:alpine image
+RUN chown -R node:node $APP_HOME
+
+# Switch to non-root user
+USER node
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+# Adjust endpoint based on your application
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Use dumb-init to run the application
+# This ensures proper signal handling and zombie process reaping
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+# Adjust command based on your build output
+CMD ["node", "dist/index.js"]
+
+# Alternative for Next.js:
+# CMD ["node_modules/.bin/next", "start"]
+
+# Alternative for Express:
+# CMD ["node", "dist/server.js"]
