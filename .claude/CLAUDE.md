@@ -119,6 +119,7 @@ Add project repository links to `PROJECTS.md` when completing, starting, or shar
 4. Show clear input/output examples
 5. Document edge cases and limitations
 6. Make examples self-contained and runnable
+7. For example/comparison/benchmarking scripts: Use `rich` library for formatted terminal output (tables, panels, colors)
 
 ### When Adding Resources
 1. Use consistent format: `- [Title](link) - Author/Source - Brief description`

@@ -972,6 +972,268 @@ pytest tests/ -v --cov=snippets
 
 ---
 
+## 14. Example, Comparison, and Benchmarking Scripts
+
+### 14.1 When This Applies
+
+Scripts that serve these purposes must use `rich` for terminal formatting:
+
+- **Example scripts**: Demonstrate usage of implementations (e.g., `examples_decision_tree.py`)
+- **Comparison scripts**: Compare implementations (ours vs. sklearn, algorithm A vs. B)
+- **Benchmarking scripts**: Show performance metrics or model comparisons
+- **Demo scripts**: Interactive demonstrations of concepts
+
+### 14.2 Required: Rich Library for Formatting
+
+**Why use Rich:**
+- Professional, readable terminal output
+- Tables for structured data comparison
+- Panels for visual organization
+- Color coding for better comprehension
+- Tree visualizations for hierarchical data
+- Consistent formatting across all examples
+
+**Installation:**
+```bash
+pip install rich
+```
+
+### 14.3 Core Rich Components to Use
+
+Import the essential components:
+
+```python
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.text import Text
+from rich.tree import Tree
+from rich import box
+
+console = Console()
+```
+
+**When to use each component:**
+
+| Component | Use Case | Example |
+|-----------|----------|---------|
+| `Console` | All output (replaces `print`) | `console.print("[bold]Training...[/bold]")` |
+| `Table` | Structured data, metrics, comparisons | Results, hyperparameters, feature info |
+| `Panel` | Section headers, warnings, key insights | `Panel.fit("[bold]Results[/bold]")` |
+| `Tree` | Hierarchical structures | Decision trees, directory structures |
+| `Text` | Styled text objects | Titles, formatted output |
+| `box` | Table/panel borders | `box.ROUNDED`, `box.SIMPLE` |
+
+### 14.4 Standard Patterns
+
+**Pattern 1: Section Headers**
+```python
+# Use panels for major sections
+console.print(Panel.fit(
+    "[bold cyan]COMPARISON RESULTS[/bold cyan]",
+    border_style="cyan"
+))
+
+# Use rules for subsections
+console.print()
+console.rule("[bold cyan]Detailed Analysis[/bold cyan]", style="cyan")
+console.print()
+```
+
+**Pattern 2: Comparison Tables**
+```python
+# Compare implementations side-by-side
+table = Table(title="Performance Comparison", box=box.ROUNDED)
+table.add_column("Metric", style="cyan", width=25)
+table.add_column("Our Impl.", justify="right", style="green")
+table.add_column("Sklearn", justify="right", style="blue")
+table.add_column("Difference", justify="right", style="magenta")
+
+table.add_row(
+    "Accuracy",
+    f"{our_acc:.4f}",
+    f"{sk_acc:.4f}",
+    f"{abs(our_acc - sk_acc):.4f}"
+)
+console.print(table)
+```
+
+**Pattern 3: Dataset Information**
+```python
+# Show dataset info clearly
+table = Table(title="Dataset Information", box=box.ROUNDED, show_header=False)
+table.add_column("Property", style="cyan", width=20)
+table.add_column("Value", style="magenta")
+
+table.add_row("Dataset", "Iris")
+table.add_row("Training samples", str(X_train.shape[0]))
+table.add_row("Features", str(X_train.shape[1]))
+console.print(table)
+```
+
+**Pattern 4: Progress and Status Messages**
+```python
+# Clear status updates
+console.print("\n[bold yellow]Training Model...[/bold yellow]")
+# ... training code ...
+console.print("[green]✓ Training complete[/green]")
+
+# Use dim for supplementary info
+console.print("[dim]Using 100 estimators with max_depth=5[/dim]")
+```
+
+**Pattern 5: Insights and Warnings**
+```python
+# Highlight key insights
+insight = Panel(
+    "[cyan]💡 Key Insight:[/cyan]\n\n"
+    "• Random Forest uses [green]feature randomness[/green]\n"
+    "• This decorrelates trees and improves generalization\n"
+    "• Typical setting: max_features='sqrt'",
+    title="[bold]Understanding Random Forests[/bold]",
+    border_style="blue",
+    box=box.ROUNDED
+)
+console.print(insight)
+
+# Warnings and alerts
+warning = Panel(
+    "[yellow]⚠️  Warning:[/yellow] Perfect training accuracy often means overfitting!",
+    title="[bold red]Overfitting Alert[/bold red]",
+    border_style="red"
+)
+console.print(warning)
+```
+
+**Pattern 6: Tree Visualization**
+```python
+# For decision trees or hierarchical structures
+def build_rich_tree(node, label="Root"):
+    """Build rich Tree visualization."""
+    if node.is_leaf():
+        node_label = f"[green]{label}[/green] → predict {node.value}"
+    else:
+        node_label = f"[blue]{label}[/blue] X[{node.feature}] ≤ {node.threshold:.2f}"
+
+    tree = Tree(node_label)
+    if not node.is_leaf():
+        tree.add(build_rich_tree(node.left, "Left"))
+        tree.add(build_rich_tree(node.right, "Right"))
+    return tree
+
+tree_viz = build_rich_tree(clf.root)
+console.print(tree_viz)
+```
+
+### 14.5 Color Scheme Guidelines
+
+Use consistent semantic colors:
+
+- **Cyan/Blue**: Headers, section titles, feature names
+- **Green**: Our implementations, success messages, positive values
+- **Yellow**: Status messages, warnings (non-critical)
+- **Magenta/Purple**: Differences, special metrics
+- **Red**: Errors, critical warnings
+- **Dim/Gray**: Supplementary info, less important details
+
+```python
+# Good: Semantic color usage
+console.print("[cyan]Dataset:[/cyan] Breast Cancer")
+console.print("[green]✓ Test passed[/green]")
+console.print("[yellow]⚠️  High variance detected[/yellow]")
+console.print("[red]✗ Test failed[/red]")
+```
+
+### 14.6 Complete Example Structure
+
+Every comparison/example script should follow this structure:
+
+```python
+"""
+[Script Title] - [Purpose]
+[Separator]
+[Description of what this script demonstrates]
+
+Key demonstrations:
+    - Point 1
+    - Point 2
+"""
+
+import numpy as np
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich import box
+
+console = Console()
+
+# Import implementations to compare
+from .our_implementation import OurModel
+from sklearn.model import SklearnModel
+
+
+def main():
+    """Run all demonstrations."""
+    # Header
+    console.print()
+    console.print(Panel.fit(
+        "[bold white]SCRIPT TITLE[/bold white]\n"
+        "[dim]Brief description[/dim]",
+        border_style="bold cyan",
+        padding=(1, 2)
+    ))
+    console.print()
+
+    # Load and display data
+    X_train, X_test, y_train, y_test = load_data()
+
+    # Run comparisons
+    compare_implementations(X_train, X_test, y_train, y_test)
+
+    # Show insights
+    show_insights()
+
+    # Completion
+    console.print(Panel.fit(
+        "[bold green]✓ DEMONSTRATION COMPLETE[/bold green]",
+        border_style="green"
+    ))
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### 14.7 Reference Examples
+
+See these files for complete examples:
+
+- **Decision trees**: `machine-learning/snippets/decision_trees/examples_decision_tree.py`
+  - Shows: Tables, trees, panels, rules, color coding
+  - Demonstrates: Classification and regression examples
+
+- **Ensemble comparison**: `machine-learning/snippets/tree_ensembles/ensemble_comparison.py`
+  - Shows: Side-by-side comparisons, metrics tables, usage guidelines
+  - Demonstrates: Multiple model comparisons with consistent formatting
+
+### 14.8 Checklist for Example Scripts
+
+Before committing an example/comparison/benchmarking script:
+
+- [ ] Uses `rich.console.Console` instead of `print()`
+- [ ] Results shown in `Table` with appropriate styling
+- [ ] Sections organized with `Panel` or `console.rule()`
+- [ ] Color scheme is semantic and consistent
+- [ ] Key insights highlighted in colored panels
+- [ ] Script has clear header and completion messages
+- [ ] Module docstring explains what is demonstrated
+- [ ] Output is readable and professionally formatted
+- [ ] No plain `print()` statements (use `console.print()`)
+
+**Remember**: Example scripts are often the first thing people run. Make them visually impressive and easy to understand!
+
+---
+
 ## Summary
 
 These standards ensure your code snippets serve as an **educational archive** that:
@@ -980,6 +1242,7 @@ These standards ensure your code snippets serve as an **educational archive** th
 2. **Works correctly** via tests and validation
 3. **Remains maintainable** with clean structure and comments
 4. **Demonstrates understanding** of concepts, not just syntax
+5. **Presents professionally** with rich terminal formatting for examples
 
 When in doubt, prioritize **clarity and educational value** over brevity or cleverness.
 
@@ -988,5 +1251,6 @@ When in doubt, prioritize **clarity and educational value** over brevity or clev
 - Someone learning the concept gains insight
 - The code demonstrates understanding, not just functionality
 - Examples show both how to use it and why it works
+- Example scripts are visually clear and professional
 
 **Remember**: You're building a learning archive, not a production library. The goal is understanding, not optimization.
