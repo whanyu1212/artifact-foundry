@@ -77,8 +77,16 @@ This repository uses Python 3.10+ with organized dependencies:
 # Clone the repository
 git clone https://github.com/whanyu1212/artifact-foundry.git
 cd artifact-foundry
+```
 
-# Install dependencies using pip (choose what you need)
+**Using pip:**
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Unix/macOS
+# .venv\Scripts\activate   # On Windows
+
+# Install dependencies (choose what you need)
 pip install -e .                    # Core dependencies only
 pip install -e ".[ml]"              # + Machine learning
 pip install -e ".[dl]"              # + Deep learning
@@ -86,9 +94,17 @@ pip install -e ".[viz]"             # + Visualization
 pip install -e ".[notebooks]"       # + Jupyter notebooks
 pip install -e ".[dev]"             # + Development tools
 pip install -e ".[all]"             # Everything
+```
 
-# Or use uv (faster alternative)
-uv pip install -e ".[all]"          # Install all dependencies
+**Using uv (faster alternative):**
+```bash
+# Create and activate virtual environment
+uv venv
+source .venv/bin/activate  # On Unix/macOS
+# .venv\Scripts\activate   # On Windows
+
+# Install dependencies
+uv pip install -e ".[all]"
 ```
 
 **Running tests**:
