@@ -1,0 +1,616 @@
+# Machine Learning CI/CD Pipeline (GitHub Actions)
+#
+# This workflow demonstrates CI/CD for machine learning applications.
+# ML pipelines have unique requirements:
+# - Data validation and versioning
+# - Model training and evaluation
+# - Model versioning and registry
+# - Model quality gates before deployment
+# - A/B testing capabilities
+# - Monitoring model performance drift
+#
+# Key Differences from Traditional CI/CD:
+# 1. Data is part of the pipeline (not just code)
+# 2. Training can be long-running (hours/days)
+# 3. Models are large artifacts (GBs)
+# 4. Need to validate model quality, not just code
+# 5. May need GPU resources for training
+# 6. Deployment involves model serving infrastructure
+
+name: ML Model CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'           # Code changes
+      - 'data/**'          # Data changes
+      - 'models/**'        # Model definition changes
+      - 'notebooks/**'     # Experiment notebooks
+      - 'requirements.txt'
+
+  pull_request:
+    branches: [main]
+
+  # Trigger retraining on schedule
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM
+
+  workflow_dispatch:
+    inputs:
+      retrain:
+        description: 'Force model retraining'
+        required: false
+        default: 'false'
+      deploy_env:
+        description: 'Environment to deploy to'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PYTHON_VERSION: '3.11'
+  # DVC (Data Version Control) for data/model versioning
+  DVC_REMOTE: 's3://my-ml-bucket/dvc-storage'
+  # MLflow for experiment tracking
+  MLFLOW_TRACKING_URI: 'https://mlflow.example.com'
+  # Model registry
+  MODEL_REGISTRY: 'gs://my-models'  # Google Cloud Storage
+  # Minimum model metrics thresholds
+  MIN_ACCURACY: 0.85
+  MIN_F1_SCORE: 0.80
+  MAX_INFERENCE_TIME_MS: 100
+
+jobs:
+
+  # ===========================================================================
+  # JOB: Code Quality (same as traditional CI/CD)
+  # ===========================================================================
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install flake8 black mypy isort
+          pip install -r requirements.txt
+
+      - name: Lint and format check
+        run: |
+          black --check src/ tests/
+          isort --check-only src/ tests/
+          flake8 src/ tests/ --max-line-length=88
+          mypy src/ --ignore-missing-imports
+
+  # ===========================================================================
+  # JOB: Data Validation
+  # Validate data quality and schema before training
+  # ===========================================================================
+  data-validation:
+    name: Validate Training Data
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for DVC
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install dvc[s3] pandas great_expectations
+          pip install -r requirements.txt
+
+      # DVC pulls data from remote storage (S3, GCS, etc.)
+      # Data is version controlled just like code
+      - name: Pull data with DVC
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          dvc remote add -d storage ${{ env.DVC_REMOTE }}
+          dvc pull data/train.csv.dvc
+          dvc pull data/test.csv.dvc
+
+      # Validate data quality using Great Expectations
+      # Checks schema, distribution, missing values, outliers, etc.
+      - name: Run data validation
+        run: |
+          # Run Great Expectations validation suite
+          python scripts/validate_data.py \
+            --train-data data/train.csv \
+            --test-data data/test.csv \
+            --output reports/data-validation.json
+
+      # Custom validation checks
+      - name: Check data statistics
+        run: |
+          python - << 'EOF'
+          import pandas as pd
+          import sys
+
+          # Load data
+          train = pd.read_csv('data/train.csv')
+          test = pd.read_csv('data/test.csv')
+
+          # Validation checks
+          print(f"Training samples: {len(train)}")
+          print(f"Test samples: {len(test)}")
+
+          # Ensure minimum sample size
+          assert len(train) >= 10000, "Training set too small"
+          assert len(test) >= 2000, "Test set too small"
+
+          # Check for missing values in target
+          assert train['target'].isna().sum() == 0, "Missing target values in train"
+          assert test['target'].isna().sum() == 0, "Missing target values in test"
+
+          # Check feature distributions (no extreme outliers)
+          for col in train.select_dtypes(include=['float64', 'int64']).columns:
+              if col != 'target':
+                  q99 = train[col].quantile(0.99)
+                  q01 = train[col].quantile(0.01)
+                  outliers = ((train[col] > q99 * 10) | (train[col] < q01 / 10)).sum()
+                  assert outliers < len(train) * 0.01, f"Too many outliers in {col}"
+
+          # Check train/test distribution similarity (simple check)
+          # In practice, use statistical tests (KS test, etc.)
+          for col in ['feature1', 'feature2']:  # Key features
+              train_mean = train[col].mean()
+              test_mean = test[col].mean()
+              diff = abs(train_mean - test_mean) / train_mean
+              assert diff < 0.1, f"Train/test distribution mismatch in {col}"
+
+          print("✓ All data validations passed")
+          EOF
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-validation-report
+          path: reports/data-validation.json
+
+  # ===========================================================================
+  # JOB: Model Training
+  # Train the ML model (could take hours, may need GPU)
+  # ===========================================================================
+  train-model:
+    name: Train ML Model
+    # Use GPU runner for training (self-hosted or cloud provider)
+    # For demo, using ubuntu-latest (CPU only)
+    runs-on: ubuntu-latest  # Replace with GPU runner for real training
+    needs: [code-quality, data-validation]
+
+    # Only train on specific conditions
+    if: |
+      github.event_name == 'schedule' ||
+      github.event.inputs.retrain == 'true' ||
+      github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install dvc[s3] mlflow scikit-learn pandas numpy
+          pip install -r requirements.txt
+
+      # Pull data
+      - name: Pull training data
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          dvc remote add -d storage ${{ env.DVC_REMOTE }}
+          dvc pull
+
+      # Train model with MLflow tracking
+      # MLflow logs parameters, metrics, and artifacts
+      - name: Train model
+        env:
+          MLFLOW_TRACKING_URI: ${{ env.MLFLOW_TRACKING_URI }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_PASSWORD }}
+        run: |
+          # Training script logs to MLflow
+          python scripts/train.py \
+            --data-path data/train.csv \
+            --output models/model.pkl \
+            --mlflow-run-name "ci-training-${GITHUB_RUN_ID}" \
+            --mlflow-experiment "production" \
+            --git-commit ${GITHUB_SHA}
+
+      # Save model as artifact
+      - name: Save trained model
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: |
+            models/model.pkl
+            models/model-metadata.json
+          retention-days: 30
+
+  # ===========================================================================
+  # JOB: Model Evaluation
+  # Validate model quality before deployment
+  # ===========================================================================
+  evaluate-model:
+    name: Evaluate Model Quality
+    runs-on: ubuntu-latest
+    needs: [train-model]
+
+    # Outputs from this job (available to dependent jobs)
+    outputs:
+      accuracy: ${{ steps.metrics.outputs.accuracy }}
+      f1_score: ${{ steps.metrics.outputs.f1_score }}
+      passes_threshold: ${{ steps.metrics.outputs.passes_threshold }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install dvc[s3] scikit-learn pandas numpy
+          pip install -r requirements.txt
+
+      # Download trained model from previous job
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+
+      # Pull test data
+      - name: Pull test data
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          dvc remote add -d storage ${{ env.DVC_REMOTE }}
+          dvc pull data/test.csv.dvc
+
+      # Evaluate model on test set
+      - name: Run model evaluation
+        id: metrics
+        run: |
+          # Evaluation script outputs metrics
+          python scripts/evaluate.py \
+            --model-path models/model.pkl \
+            --test-data data/test.csv \
+            --output reports/evaluation.json
+
+          # Extract metrics and set as outputs
+          ACCURACY=$(jq -r '.accuracy' reports/evaluation.json)
+          F1_SCORE=$(jq -r '.f1_score' reports/evaluation.json)
+          INFERENCE_TIME=$(jq -r '.avg_inference_time_ms' reports/evaluation.json)
+
+          echo "Accuracy: $ACCURACY"
+          echo "F1 Score: $F1_SCORE"
+          echo "Inference Time: ${INFERENCE_TIME}ms"
+
+          # Set outputs for use in other jobs
+          echo "accuracy=$ACCURACY" >> $GITHUB_OUTPUT
+          echo "f1_score=$F1_SCORE" >> $GITHUB_OUTPUT
+
+          # Check if model passes thresholds
+          PASSES_THRESHOLD="true"
+          if (( $(echo "$ACCURACY < ${{ env.MIN_ACCURACY }}" | bc -l) )); then
+            echo "❌ Accuracy below threshold"
+            PASSES_THRESHOLD="false"
+          fi
+          if (( $(echo "$F1_SCORE < ${{ env.MIN_F1_SCORE }}" | bc -l) )); then
+            echo "❌ F1 score below threshold"
+            PASSES_THRESHOLD="false"
+          fi
+          if (( $(echo "$INFERENCE_TIME > ${{ env.MAX_INFERENCE_TIME_MS }}" | bc -l) )); then
+            echo "❌ Inference time too slow"
+            PASSES_THRESHOLD="false"
+          fi
+
+          echo "passes_threshold=$PASSES_THRESHOLD" >> $GITHUB_OUTPUT
+
+          if [ "$PASSES_THRESHOLD" == "false" ]; then
+            echo "Model quality below threshold, not deploying"
+            exit 1
+          fi
+
+          echo "✓ Model passes all quality thresholds"
+
+      # Check for model bias/fairness
+      - name: Fairness analysis
+        run: |
+          python scripts/fairness_check.py \
+            --model-path models/model.pkl \
+            --test-data data/test.csv \
+            --protected-attributes age,gender \
+            --output reports/fairness.json
+
+      # Upload evaluation reports
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-reports
+          path: |
+            reports/evaluation.json
+            reports/fairness.json
+
+  # ===========================================================================
+  # JOB: Register Model
+  # Version and register model in model registry
+  # ===========================================================================
+  register-model:
+    name: Register Model in Registry
+    runs-on: ubuntu-latest
+    needs: [evaluate-model]
+    # Only register if model passes quality checks
+    if: needs.evaluate-model.outputs.passes_threshold == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install mlflow google-cloud-storage
+
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+
+      # Register model in MLflow Model Registry
+      - name: Register model in MLflow
+        env:
+          MLFLOW_TRACKING_URI: ${{ env.MLFLOW_TRACKING_URI }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_PASSWORD }}
+        run: |
+          python - << 'EOF'
+          import mlflow
+          from mlflow.tracking import MlflowClient
+
+          # Connect to MLflow
+          client = MlflowClient()
+
+          # Register model
+          model_name = "my-ml-model"
+          model_uri = f"models/model.pkl"
+
+          # Create version in registry
+          version = mlflow.register_model(
+              model_uri=model_uri,
+              name=model_name,
+              tags={
+                  "git_commit": "${GITHUB_SHA}",
+                  "accuracy": "${{ needs.evaluate-model.outputs.accuracy }}",
+                  "f1_score": "${{ needs.evaluate-model.outputs.f1_score }}",
+                  "trained_by": "ci_pipeline"
+              }
+          )
+
+          print(f"Registered model version: {version.version}")
+
+          # Transition to staging
+          client.transition_model_version_stage(
+              name=model_name,
+              version=version.version,
+              stage="Staging"
+          )
+
+          print(f"Model version {version.version} moved to Staging")
+          EOF
+
+      # Also upload to cloud storage with versioning
+      - name: Upload to model storage
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          # Version model with git commit SHA
+          MODEL_VERSION="${GITHUB_SHA:0:7}"
+
+          # Upload to GCS (or S3, Azure Blob, etc.)
+          gsutil cp models/model.pkl \
+            gs://my-models/production/${MODEL_VERSION}/model.pkl
+
+          gsutil cp models/model-metadata.json \
+            gs://my-models/production/${MODEL_VERSION}/metadata.json
+
+          echo "Model uploaded to: gs://my-models/production/${MODEL_VERSION}/"
+
+  # ===========================================================================
+  # JOB: Deploy Model to Staging
+  # Deploy model serving API to staging environment
+  # ===========================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [register-model]
+
+    environment:
+      name: staging
+      url: https://ml-api-staging.example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build model serving Docker image
+      - name: Build model serving image
+        run: |
+          docker build \
+            -f Dockerfile.serving \
+            --build-arg MODEL_VERSION=${GITHUB_SHA:0:7} \
+            -t ml-api:staging \
+            .
+
+      # Push to container registry
+      - name: Push image
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker tag ml-api:staging mycompany/ml-api:staging
+          docker push mycompany/ml-api:staging
+
+      # Deploy to Kubernetes staging
+      - name: Deploy to staging
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
+
+          kubectl set image deployment/ml-api \
+            ml-api=mycompany/ml-api:staging \
+            -n staging
+
+          kubectl rollout status deployment/ml-api -n staging --timeout=5m
+
+      # Run API tests against staging
+      - name: Test staging deployment
+        run: |
+          sleep 30
+
+          # Health check
+          curl -f https://ml-api-staging.example.com/health
+
+          # Prediction endpoint test
+          curl -X POST https://ml-api-staging.example.com/predict \
+            -H "Content-Type: application/json" \
+            -d '{"features": [1.0, 2.0, 3.0]}' \
+            | jq '.prediction'
+
+  # ===========================================================================
+  # JOB: Deploy to Production
+  # Deploy to production with A/B testing capability
+  # ===========================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/main'
+
+    environment:
+      name: production
+      url: https://ml-api.example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production image
+        run: |
+          docker build \
+            -f Dockerfile.serving \
+            --build-arg MODEL_VERSION=${GITHUB_SHA:0:7} \
+            -t ml-api:${GITHUB_SHA:0:7} \
+            .
+
+      - name: Push production image
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker tag ml-api:${GITHUB_SHA:0:7} mycompany/ml-api:${GITHUB_SHA:0:7}
+          docker tag ml-api:${GITHUB_SHA:0:7} mycompany/ml-api:latest
+          docker push mycompany/ml-api:${GITHUB_SHA:0:7}
+          docker push mycompany/ml-api:latest
+
+      # Canary deployment: Start with 10% traffic to new version
+      - name: Deploy canary (10% traffic)
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
+
+          # Update canary deployment
+          kubectl set image deployment/ml-api-canary \
+            ml-api=mycompany/ml-api:${GITHUB_SHA:0:7} \
+            -n production
+
+          kubectl rollout status deployment/ml-api-canary -n production
+
+          # Service mesh (Istio/Linkerd) routes 10% to canary
+          # This is configured in VirtualService
+
+      - name: Monitor canary metrics
+        run: |
+          # Wait and monitor error rate, latency
+          sleep 300  # 5 minutes
+
+          # Query Prometheus for canary metrics
+          # In real scenario, implement proper metric checks
+          echo "Monitoring canary deployment..."
+
+          # If metrics look good, proceed
+          # If not, rollback canary
+
+      - name: Promote to full production
+        run: |
+          export KUBECONFIG=kubeconfig.yaml
+
+          # Update main production deployment
+          kubectl set image deployment/ml-api \
+            ml-api=mycompany/ml-api:${GITHUB_SHA:0:7} \
+            -n production
+
+          kubectl rollout status deployment/ml-api -n production --timeout=10m
+
+      - name: Update model registry
+        env:
+          MLFLOW_TRACKING_URI: ${{ env.MLFLOW_TRACKING_URI }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_PASSWORD }}
+        run: |
+          # Transition model to Production stage in MLflow
+          python - << 'EOF'
+          from mlflow.tracking import MlflowClient
+
+          client = MlflowClient()
+
+          # Get latest version
+          versions = client.search_model_versions("name='my-ml-model'")
+          latest = max(versions, key=lambda x: x.version)
+
+          # Move to production
+          client.transition_model_version_stage(
+              name="my-ml-model",
+              version=latest.version,
+              stage="Production",
+              archive_existing_versions=True  # Archive old production versions
+          )
+
+          print(f"Model version {latest.version} deployed to production")
+          EOF

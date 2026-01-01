@@ -1,0 +1,558 @@
+# GitLab CI/CD Pipeline for Python Application
+#
+# This pipeline demonstrates a complete CI/CD workflow in GitLab.
+# GitLab CI/CD uses a different syntax than GitHub Actions but provides similar functionality.
+#
+# Key Differences from GitHub Actions:
+# - Uses "stages" concept where jobs in same stage run in parallel
+# - Has built-in Docker registry and container scanning
+# - Environment variables set differently
+# - Different caching mechanism
+#
+# Pipeline Structure:
+# 1. build      - Install dependencies, build artifacts
+# 2. test       - Run tests, linting, security scans
+# 3. scan       - Container and security scanning
+# 4. deploy-dev - Deploy to development environment
+# 5. deploy-prod - Deploy to production (manual trigger)
+
+# =============================================================================
+# GLOBAL CONFIGURATION
+# =============================================================================
+
+# Default Docker image to use for jobs (can be overridden per job)
+# Using Python slim image for smaller size and faster pulls
+default:
+  image: python:3.11-slim
+
+# Variables available to all jobs
+# Can be overridden at project/group level in GitLab UI
+variables:
+  # Python configuration
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"  # Cache pip packages
+  PYTHON_VERSION: "3.11"
+
+  # Docker configuration
+  DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE  # Automatically uses GitLab container registry
+  DOCKER_TLS_CERTDIR: "/certs"           # Required for Docker-in-Docker
+
+  # Test configuration
+  MIN_COVERAGE: "80"
+  POSTGRES_DB: "test_db"
+  POSTGRES_USER: "test_user"
+  POSTGRES_PASSWORD: "test_password"
+
+  # Deployment configuration
+  STAGING_URL: "https://staging.example.com"
+  PRODUCTION_URL: "https://example.com"
+
+# =============================================================================
+# STAGES - Define the pipeline stages in order of execution
+# Jobs in the same stage run in parallel
+# =============================================================================
+stages:
+  - build       # Install dependencies, compile code
+  - test        # Run all tests and quality checks
+  - scan        # Security and vulnerability scanning
+  - deploy-dev  # Deploy to development/staging
+  - deploy-prod # Deploy to production
+
+# =============================================================================
+# CACHING - Speed up pipelines by caching dependencies
+# Cache is shared between jobs but separate per branch
+# =============================================================================
+cache:
+  # Cache key based on branch name - each branch has its own cache
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cache/pip      # pip packages cache
+    - .venv/          # Virtual environment (if using venv)
+  # Policy: pull-push means download cache at start, upload at end
+  policy: pull-push
+
+# =============================================================================
+# BEFORE SCRIPT - Runs before every job (unless overridden)
+# =============================================================================
+before_script:
+  # Print debug information
+  - echo "Running on runner $CI_RUNNER_ID"
+  - echo "Branch $CI_COMMIT_REF_NAME, commit $CI_COMMIT_SHORT_SHA"
+  - python --version
+  - pip --version
+
+# =============================================================================
+# JOB TEMPLATES - Reusable job configurations
+# Jobs starting with . are hidden and not executed
+# =============================================================================
+
+# Template for Python setup
+.python_setup: &python_setup
+  before_script:
+    - python --version
+    - pip install --upgrade pip
+    - pip install virtualenv
+    - virtualenv .venv
+    - source .venv/bin/activate
+
+# Template for Docker configuration
+.docker_setup: &docker_setup
+  image: docker:24-dind  # Docker-in-Docker image
+  services:
+    - docker:24-dind     # Docker daemon service
+  before_script:
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+# =============================================================================
+# BUILD STAGE - Install dependencies and create build artifacts
+# =============================================================================
+
+# Build job: Install dependencies and verify build
+build:dependencies:
+  stage: build
+  <<: *python_setup  # Use Python setup template
+
+  # Explicit script steps
+  script:
+    # Install production dependencies
+    - pip install -r requirements.txt
+
+    # Install development dependencies for testing
+    - pip install -r requirements-dev.txt
+
+    # Verify imports work (basic smoke test)
+    - python -c "import src; print('Import successful')"
+
+    # Create a build info file
+    - |
+      cat > build_info.txt << EOF
+      Build Date: $(date)
+      GitLab CI Job: $CI_JOB_ID
+      Commit: $CI_COMMIT_SHA
+      Branch: $CI_COMMIT_REF_NAME
+      Pipeline: $CI_PIPELINE_ID
+      EOF
+
+    - cat build_info.txt
+
+  # Artifacts are files passed between jobs or downloadable from GitLab UI
+  artifacts:
+    name: "dependencies-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - .venv/              # Save virtual environment
+      - build_info.txt      # Save build info
+    expire_in: 1 hour       # Keep for 1 hour (only needed for this pipeline)
+    reports:
+      # dotenv file creates variables available in downstream jobs
+      dotenv: build_info.txt
+
+  # Only run on certain branches/events
+  only:
+    - branches    # Run on all branch pushes
+    - tags        # Run on tag pushes
+    - merge_requests  # Run on MRs
+
+# =============================================================================
+# TEST STAGE - Run all quality checks and tests
+# =============================================================================
+
+# Code quality checks: linting, formatting, type checking
+test:quality:
+  stage: test
+  <<: *python_setup
+
+  # This job depends on build:dependencies completing
+  # It will use artifacts from that job
+  needs:
+    - build:dependencies
+
+  script:
+    # Activate virtual environment created in build stage
+    - source .venv/bin/activate
+
+    # Install additional linting tools
+    - pip install flake8 black mypy isort bandit
+
+    # 1. Check code formatting with Black
+    # --check means don't modify files, just report issues
+    # --diff shows what would be changed
+    - echo "Checking code formatting..."
+    - black --check --diff src/ tests/
+
+    # 2. Check import sorting
+    - echo "Checking import sorting..."
+    - isort --check-only --diff src/ tests/
+
+    # 3. Lint with Flake8
+    # First pass: Check for critical errors only
+    - echo "Checking for syntax errors..."
+    - flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # Second pass: Full linting with warnings
+    - echo "Running full lint check..."
+    - flake8 src/ tests/ --count --max-line-length=88 --statistics --format=html --htmldir=flake8-report
+
+    # 4. Type checking with mypy
+    - echo "Running type checker..."
+    - mypy src/ --html-report mypy-report || true  # Don't fail on type errors
+
+    # 5. Security linting with Bandit
+    - echo "Running security checks..."
+    - bandit -r src/ -f html -o bandit-report.html
+    - bandit -r src/ -ll  # Show medium/high severity in logs
+
+  # Save quality check reports
+  artifacts:
+    name: "quality-reports-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - flake8-report/
+      - mypy-report/
+      - bandit-report.html
+    expire_in: 1 week
+    when: always  # Save artifacts even if job fails
+
+# Unit tests with coverage
+test:unit:
+  stage: test
+  <<: *python_setup
+
+  needs:
+    - build:dependencies
+
+  # Service containers - run alongside the job
+  services:
+    - name: postgres:15-alpine
+      alias: postgres  # Accessible as "postgres" hostname
+
+    - name: redis:7-alpine
+      alias: redis     # Accessible as "redis" hostname
+
+  # Environment variables for this job
+  variables:
+    DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB"
+    REDIS_URL: "redis://redis:6379"
+
+  script:
+    - source .venv/bin/activate
+
+    # Wait for services to be ready
+    - |
+      echo "Waiting for PostgreSQL..."
+      until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c '\q'; do
+        >&2 echo "PostgreSQL is unavailable - sleeping"
+        sleep 1
+      done
+      echo "PostgreSQL is up!"
+
+    # Run tests with coverage
+    - |
+      pytest tests/ \
+        --verbose \
+        --cov=src \
+        --cov-report=term \
+        --cov-report=html:coverage-html \
+        --cov-report=xml:coverage.xml \
+        --junitxml=test-results.xml \
+        --cov-fail-under=$MIN_COVERAGE
+
+  # Coverage report in GitLab UI
+  coverage: '/TOTAL.*\s+(\d+%)$/'  # Regex to extract coverage percentage
+
+  artifacts:
+    paths:
+      - coverage-html/
+      - coverage.xml
+    reports:
+      # JUnit XML for test results in merge request
+      junit: test-results.xml
+      # Cobertura format for coverage visualization
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 1 week
+    when: always
+
+# Integration tests
+test:integration:
+  stage: test
+  <<: *python_setup
+
+  needs:
+    - build:dependencies
+
+  services:
+    - postgres:15-alpine
+    - redis:7-alpine
+
+  variables:
+    DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB"
+    REDIS_URL: "redis://redis:6379"
+
+  script:
+    - source .venv/bin/activate
+    - pytest tests/integration/ --verbose
+
+  # Only run on merge requests and main branch
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# =============================================================================
+# SCAN STAGE - Security and vulnerability scanning
+# =============================================================================
+
+# Dependency vulnerability scanning
+scan:dependencies:
+  stage: scan
+  <<: *python_setup
+
+  needs:
+    - build:dependencies
+
+  script:
+    - source .venv/bin/activate
+
+    # Install security scanning tools
+    - pip install safety pip-audit
+
+    # Scan with Safety (checks against known vulnerability database)
+    - echo "Scanning dependencies with Safety..."
+    - safety check --json --output safety-report.json || true
+    - safety check || true
+
+    # Scan with pip-audit
+    - echo "Scanning with pip-audit..."
+    - pip-audit --requirement requirements.txt --format json --output pip-audit-report.json || true
+    - pip-audit --requirement requirements.txt || true
+
+  artifacts:
+    paths:
+      - safety-report.json
+      - pip-audit-report.json
+    expire_in: 1 month
+
+  # Allow failure so pipeline continues even with vulnerabilities
+  # But the issue will be visible in the pipeline
+  allow_failure: true
+
+# SAST (Static Application Security Testing)
+# GitLab has built-in SAST scanning
+sast:
+  stage: scan
+
+  # Use GitLab's SAST template
+  # This automatically scans code for security vulnerabilities
+  include:
+    - template: Security/SAST.gitlab-ci.yml
+
+  # SAST variables can be customized
+  variables:
+    SAST_EXCLUDED_PATHS: "tests/, docs/"
+
+# Secret detection - prevent secrets from being committed
+secret_detection:
+  stage: scan
+
+  include:
+    - template: Security/Secret-Detection.gitlab-ci.yml
+
+# =============================================================================
+# BUILD AND SCAN DOCKER IMAGE
+# =============================================================================
+
+# Build Docker image
+build:docker:
+  stage: scan
+  <<: *docker_setup
+
+  needs:
+    - test:unit
+    - test:quality
+
+  script:
+    # Build image with multiple tags
+    - |
+      docker build \
+        --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+        --build-arg VCS_REF=$CI_COMMIT_SHORT_SHA \
+        --build-arg VERSION=$CI_COMMIT_REF_NAME \
+        --tag $DOCKER_IMAGE_NAME:$CI_COMMIT_SHORT_SHA \
+        --tag $DOCKER_IMAGE_NAME:$CI_COMMIT_REF_SLUG \
+        .
+
+    # Push to GitLab Container Registry
+    - docker push $DOCKER_IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_IMAGE_NAME:$CI_COMMIT_REF_SLUG
+
+    # Tag as latest if on main branch
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "main" ]; then
+        docker tag $DOCKER_IMAGE_NAME:$CI_COMMIT_SHORT_SHA $DOCKER_IMAGE_NAME:latest
+        docker push $DOCKER_IMAGE_NAME:latest
+      fi
+
+  # Only build Docker on specific branches
+  only:
+    - main
+    - develop
+    - tags
+
+# Container scanning - scan Docker image for vulnerabilities
+# GitLab Ultimate has built-in container scanning
+container_scanning:
+  stage: scan
+
+  needs:
+    - build:docker
+
+  include:
+    - template: Security/Container-Scanning.gitlab-ci.yml
+
+  variables:
+    # Scan the image we just built
+    CS_IMAGE: $DOCKER_IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+
+  only:
+    - main
+    - develop
+
+# =============================================================================
+# DEPLOYMENT STAGES
+# =============================================================================
+
+# Deploy to development/staging environment
+deploy:staging:
+  stage: deploy-dev
+  image: alpine:latest
+
+  needs:
+    - build:docker
+
+  # GitLab environments track deployments
+  environment:
+    name: staging
+    url: $STAGING_URL
+    # Auto-stop environment after 1 day
+    auto_stop_in: 1 day
+
+  before_script:
+    # Install kubectl
+    - apk add --no-cache curl
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x kubectl
+    - mv kubectl /usr/local/bin/
+
+  script:
+    # Configure kubectl (use secrets for real credentials)
+    - echo "$KUBE_CONFIG_STAGING" | base64 -d > kubeconfig.yaml
+    - export KUBECONFIG=kubeconfig.yaml
+
+    # Deploy to Kubernetes
+    - |
+      kubectl set image deployment/myapp \
+        myapp=$DOCKER_IMAGE_NAME:$CI_COMMIT_SHORT_SHA \
+        -n staging
+
+    # Wait for rollout
+    - kubectl rollout status deployment/myapp -n staging --timeout=5m
+
+    # Run smoke tests
+    - sleep 30
+    - curl -f $STAGING_URL/health || exit 1
+
+  # Only deploy staging on develop branch
+  only:
+    - develop
+
+  # Retry deployment up to 2 times on failure
+  retry:
+    max: 2
+    when:
+      - script_failure
+
+# Deploy to production
+deploy:production:
+  stage: deploy-prod
+  image: alpine:latest
+
+  needs:
+    - build:docker
+    - deploy:staging  # Require successful staging deployment
+
+  environment:
+    name: production
+    url: $PRODUCTION_URL
+
+  before_script:
+    - apk add --no-cache curl
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x kubectl
+    - mv kubectl /usr/local/bin/
+
+  script:
+    - echo "$KUBE_CONFIG_PRODUCTION" | base64 -d > kubeconfig.yaml
+    - export KUBECONFIG=kubeconfig.yaml
+
+    # Production deployment
+    - |
+      kubectl set image deployment/myapp \
+        myapp=$DOCKER_IMAGE_NAME:$CI_COMMIT_SHORT_SHA \
+        -n production
+
+    # Wait and monitor
+    - kubectl rollout status deployment/myapp -n production --timeout=10m
+
+    # Comprehensive health checks
+    - sleep 60
+    - |
+      for i in $(seq 1 5); do
+        if curl -f $PRODUCTION_URL/health; then
+          echo "Health check passed"
+          exit 0
+        fi
+        echo "Health check $i/5 failed, retrying..."
+        sleep 10
+      done
+
+      # Rollback on failure
+      echo "Health checks failed, rolling back"
+      kubectl rollout undo deployment/myapp -n production
+      exit 1
+
+  # Only deploy production from main branch
+  only:
+    - main
+
+  # Require manual approval before deploying to production
+  when: manual
+
+  # Protect against accidental deployments
+  # Can only be triggered by maintainers
+  # (Configure in GitLab project settings -> CI/CD -> Protected environments)
+
+# =============================================================================
+# ADDITIONAL JOBS - Run on schedule or special conditions
+# =============================================================================
+
+# Nightly security scan (runs on schedule, not on every commit)
+nightly:security-audit:
+  stage: scan
+  <<: *python_setup
+
+  script:
+    - source .venv/bin/activate
+    - pip install safety pip-audit
+    - safety check --full-report
+    - pip-audit --requirement requirements.txt --desc
+
+  # Only run on schedules, not on commits
+  # Configure schedule in GitLab: CI/CD -> Schedules
+  only:
+    - schedules
+
+  # Send email notification on failure
+  artifacts:
+    reports:
+      # Create a metrics report
+      metrics: security-metrics.txt
