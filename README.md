@@ -121,7 +121,7 @@ pytest tests/
 
 ## 🤖 AI for Knowledge Building
 
-This repository leverages **Claude Code** with custom agents and skills for enhanced learning workflows:
+This repository leverages **Claude Code** with custom agents, skills, and coding standards for enhanced learning workflows:
 
 ### Custom Agents
 - **learning-curator**: Organizes notes and resources, ensures consistent structure
@@ -130,6 +130,11 @@ This repository leverages **Claude Code** with custom agents and skills for enha
 ### Available Skills
 - `/add-resource` - Add learning materials to appropriate resources.md files
 - `/link-project` - Track implementation projects in PROJECTS.md
+
+### Configuration & Standards
+- [.claude/CLAUDE.md](.claude/CLAUDE.md) - Project overview and AI assistant context
+- [.claude/ORGANIZATION.md](.claude/ORGANIZATION.md) - Content organization guidelines
+- [.claude/rules/python-snippets.md](.claude/rules/python-snippets.md) - Python code style standards
 
 See [AGENTS.md](AGENTS.md) for detailed documentation on AI-assisted workflows.
 
