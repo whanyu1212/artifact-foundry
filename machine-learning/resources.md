@@ -11,22 +11,116 @@
 
 ### Core Machine Learning Textbooks
 
-- [An Introduction to Statistical Learning](https://www.statlearning.com/) - James, Witten, Hastie, Tibshirani - Accessible introduction to statistical learning with R examples; essential chapters on cross-validation (Ch 5), resampling methods, and tree-based methods (Ch 8)
-- [The Elements of Statistical Learning](https://hastie.su.stanford.edu/ElemStatLearn/) - Hastie, Tibshirani, Friedman - Comprehensive mathematical treatment of statistical learning; authoritative reference for model assessment (Ch 7), trees and ensemble methods (Ch 9-10, 15, 16)
+- [An Introduction to Statistical Learning](https://www.statlearning.com/) - James, Witten, Hastie, Tibshirani - Accessible introduction to statistical learning with R examples; essential chapters on linear regression (Ch 3), logistic regression and GLMs (Ch 4), regularization methods (Ch 6), cross-validation (Ch 5), and tree-based methods (Ch 8)
+- [The Elements of Statistical Learning](https://hastie.su.stanford.edu/ElemStatLearn/) - Hastie, Tibshirani, Friedman - Comprehensive mathematical treatment of statistical learning; authoritative reference for linear methods (Ch 3), basis expansions (Ch 5), model assessment (Ch 7), trees and ensemble methods (Ch 9-10, 15, 16)
 - [Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow (3rd Edition)](https://www.oreilly.com/library/view/hands-on-machine-learning/9781098125967/) - Aurélien Géron - Practical Python implementations using scikit-learn; excellent for ensemble methods, decision trees, and hyperparameter tuning
 - [Pattern Recognition and Machine Learning](https://www.microsoft.com/en-us/research/publication/pattern-recognition-machine-learning/) - Christopher Bishop - Bayesian perspective on machine learning with strong theoretical foundations; comprehensive coverage of model selection and evaluation
 
 ## Papers
 
-- Breiman, L. (1996) "Bagging Predictors" - Original paper introducing Bootstrap Aggregating (bagging) ensemble method
-- Breiman, L. (2001) "Random Forests" - Seminal paper introducing Random Forest algorithm with random feature selection
-- Chen & Guestrin (2016) "XGBoost: A Scalable Tree Boosting System" - XGBoost paper introducing second-order optimization and regularization
-- Freund & Schapire (1997) "A Decision-Theoretic Generalization of On-Line Learning" - Original AdaBoost paper
-- Friedman (2001) "Greedy Function Approximation: A Gradient Boosting Machine" - Foundational gradient boosting paper
+### Linear Models and Regularization
+
+- [Hoerl & Kennard (1970) "Ridge Regression: Biased Estimation for Nonorthogonal Problems"](https://www.jstor.org/stable/1267351) - Original Ridge regression paper introducing L2 regularization
+- [Tibshirani (1996) "Regression Shrinkage and Selection via the Lasso"](https://www.jstor.org/stable/2346178) - Seminal Lasso paper introducing L1 regularization for sparse solutions
+- [Zou & Hastie (2005) "Regularization and Variable Selection via the Elastic Net"](https://hastie.su.stanford.edu/Papers/B67.2%20%282005%29%20301-320%20Zou%20&%20Hastie.pdf) - Elastic Net paper combining L1 and L2 penalties for grouped variable selection
+- [Nelder & Wedderburn (1972) "Generalized Linear Models"](https://www.jstor.org/stable/2344614) - Foundational GLM paper establishing the framework for exponential family distributions
+
+### Probabilistic Models
+
+- [Fisher, R. A. (1936) "The Use of Multiple Measurements in Taxonomic Problems"](https://onlinelibrary.wiley.com/doi/10.1111/j.1469-1809.1936.tb02137.x) - Original LDA paper introducing linear discriminant analysis
+- [Friedman, J. H. (1989) "Regularized Discriminant Analysis"](https://www.jstor.org/stable/2289860) - RDA paper introducing regularization for discriminant analysis
+
+### Instance-Based Learning (K-Nearest Neighbors)
+
+- [Cover, T. M., & Hart, P. E. (1967) "Nearest Neighbor Pattern Classification"](https://ieeexplore.ieee.org/document/1053964) - Foundational paper on KNN algorithm and error bounds
+- [Fix, E., & Hodges, J. L. (1951) "Discriminatory Analysis: Nonparametric Discrimination"](https://apps.dtic.mil/sti/citations/ADA800276) - Early work on nearest neighbor classification
+
+### Support Vector Machines
+
+- [Boser, B. E., Guyon, I. M., & Vapnik, V. N. (1992) "A Training Algorithm for Optimal Margin Classifiers"](https://dl.acm.org/doi/10.1145/130385.130401) - Original SVM paper introducing optimal margin classifier
+- [Cortes, C., & Vapnik, V. (1995) "Support-Vector Networks"](https://link.springer.com/article/10.1007/BF00994018) - Seminal SVM paper introducing soft margin and kernel methods
+- [Platt, J. (1998) "Sequential Minimal Optimization: A Fast Algorithm for Training Support Vector Machines"](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-98-14.pdf) - SMO algorithm for efficient SVM training
+- [Schölkopf, B., & Smola, A. J. (2002) "Learning with Kernels"](https://mitpress.mit.edu/9780262536578/learning-with-kernels/) - Comprehensive book on kernel methods and SVM theory
+
+### Evaluation Metrics
+
+- [Davis, J., & Goadrich, M. (2006) "The Relationship Between Precision-Recall and ROC Curves"](https://www.biostat.wisc.edu/~page/rocpr.pdf) - Analysis of when to use PR curves vs ROC curves, especially for imbalanced data
+- [Hand, D. J., & Till, R. J. (2001) "A Simple Generalisation of the Area Under the ROC Curve for Multiple Class Classification Problems"](https://link.springer.com/article/10.1023/A:1010920819831) - Extension of AUC to multi-class classification
+- [Matthews, B. W. (1975) "Comparison of the Predicted and Observed Secondary Structure of T4 Phage Lysozyme"](https://www.sciencedirect.com/science/article/abs/pii/0005279575901099) - Original paper introducing Matthews Correlation Coefficient
+- [Powers, D. M. W. (2011) "Evaluation: From Precision, Recall and F-Measure to ROC, Informedness, Markedness & Correlation"](https://arxiv.org/abs/2010.16061) - Comprehensive analysis of classification metrics relationships
+- [Willmott, C. J., & Matsuura, K. (2005) "Advantages of the Mean Absolute Error (MAE) over the Root Mean Square Error (RMSE)"](https://rmets.onlinelibrary.wiley.com/doi/10.1002/joc.1183) - Discussion of MAE vs RMSE for model evaluation
+
+### Tree-Based Methods and Ensembles
+
+- [Breiman, L. (1996) "Bagging Predictors"](https://link.springer.com/article/10.1023/A:1018054314350) - Original paper introducing Bootstrap Aggregating (bagging) ensemble method
+- [Breiman, L. (2001) "Random Forests"](https://link.springer.com/article/10.1023/A:1010933404324) - Seminal paper introducing Random Forest algorithm with random feature selection
+- [Chen & Guestrin (2016) "XGBoost: A Scalable Tree Boosting System"](https://arxiv.org/abs/1603.02754) - XGBoost paper introducing second-order optimization and regularization
+- [Freund & Schapire (1997) "A Decision-Theoretic Generalization of On-Line Learning"](https://cseweb.ucsd.edu/~yfreund/papers/adaboost.pdf) - Original AdaBoost paper
+- [Friedman (2001) "Greedy Function Approximation: A Gradient Boosting Machine"](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-5/Greedy-function-approximation-A-gradient-boostingmachine/10.1214/aos/1013203451.full) - Foundational gradient boosting paper
 
 ## Courses
 
 ## Articles & Tutorials
+
+### Linear Regression
+
+- [A Complete Guide to Linear Regression](https://towardsdatascience.com/linear-regression-detailed-view-ea73175f6e86) - Towards Data Science - Comprehensive explanation of linear regression with mathematical foundations
+- [Introduction to Linear Regression](https://machinelearningmastery.com/linear-regression-for-machine-learning/) - Machine Learning Mastery - Practical guide to linear regression with Python examples
+- [Linear Regression Explained](https://mlu-explain.github.io/linear-regression/) - MLU-Explain - Interactive visualization of linear regression concepts
+- [Simple and Multiple Linear Regression in Python](https://realpython.com/linear-regression-in-python/) - Real Python - Comprehensive Python tutorial covering statsmodels, scikit-learn, and manual implementation
+
+### Regularization (Ridge, Lasso, Elastic Net)
+
+- [L1 and L2 Regularization Methods](https://towardsdatascience.com/l1-and-l2-regularization-methods-ce25e7fc831c) - Towards Data Science - Clear explanation of L1 vs L2 regularization
+- [Lasso and Ridge Regression Explained](https://www.datacamp.com/tutorial/tutorial-lasso-ridge-regression) - DataCamp - Practical tutorial on regularization techniques
+- [Regularization in Machine Learning](https://www.geeksforgeeks.org/regularization-in-machine-learning/) - GeeksforGeeks - Overview of regularization methods with code examples
+- [Ridge and Lasso Regression: A Complete Guide with Python Scikit-Learn](https://towardsdatascience.com/ridge-and-lasso-regression-a-complete-guide-with-python-scikit-learn-e20e34bcbf0b) - Towards Data Science - Practical implementation guide
+- [Understanding the Bias-Variance Tradeoff and Visualizing it with Example and Python Code](https://www.kdnuggets.com/2020/09/understanding-bias-variance-tradeoff.html) - KDnuggets - Visualization of bias-variance tradeoff with regularization
+
+### Logistic Regression and GLMs
+
+- [Logistic Regression Detailed Overview](https://towardsdatascience.com/logistic-regression-detailed-overview-46c4da4303bc) - Towards Data Science - Mathematical foundation and implementation
+- [Logistic Regression for Machine Learning](https://machinelearningmastery.com/logistic-regression-for-machine-learning/) - Machine Learning Mastery - Comprehensive guide to logistic regression
+- [Understanding Logistic Regression](https://www.analyticsvidhya.com/blog/2021/08/conceptual-understanding-of-logistic-regression-for-data-science-beginners/) - Analytics Vidhya - Beginner-friendly explanation
+- [Generalized Linear Models](https://www.statsmodels.org/stable/glm.html) - Statsmodels Documentation - Technical guide to GLMs with Python
+
+### Probabilistic Models (Naive Bayes, LDA/QDA)
+
+- [6 Easy Steps to Learn Naive Bayes Algorithm](https://www.analyticsvidhya.com/blog/2017/09/naive-bayes-explained/) - Analytics Vidhya - Step-by-step guide to Naive Bayes with examples
+- [Linear Discriminant Analysis Explained](https://towardsdatascience.com/linear-discriminant-analysis-explained-f88be6c1e00b) - Towards Data Science - LDA for classification and dimensionality reduction
+- [Naive Bayes Classifier Explained](https://towardsdatascience.com/naive-bayes-classifier-81d512f50a7c) - Towards Data Science - Mathematical foundations and applications
+- [Naive Bayes for Machine Learning](https://machinelearningmastery.com/naive-bayes-for-machine-learning/) - Machine Learning Mastery - Comprehensive guide to all Naive Bayes variants
+- [Understanding Linear Discriminant Analysis (LDA)](https://www.geeksforgeeks.org/ml-linear-discriminant-analysis/) - GeeksforGeeks - LDA concepts with Python implementation
+
+### K-Nearest Neighbors (KNN)
+
+- [A Complete Guide to K-Nearest Neighbors (with Python code)](https://www.analyticsvidhya.com/blog/2018/03/introduction-k-neighbours-algorithm-clustering/) - Analytics Vidhya - Comprehensive KNN guide with distance metrics and implementation
+- [K-Nearest Neighbors Algorithm in Machine Learning](https://www.geeksforgeeks.org/k-nearest-neighbours/) - GeeksforGeeks - Detailed explanation with code examples
+- [K-Nearest Neighbors for Machine Learning](https://machinelearningmastery.com/k-nearest-neighbors-for-machine-learning/) - Machine Learning Mastery - Complete guide to KNN algorithm
+- [KNN Algorithm: An Overview](https://www.datacamp.com/tutorial/k-nearest-neighbor-classification-scikit-learn) - DataCamp - Practical tutorial on KNN classification
+- [Understanding K-Nearest Neighbors](https://towardsdatascience.com/machine-learning-basics-with-the-k-nearest-neighbors-algorithm-6a6e71d01761) - Towards Data Science - KNN fundamentals and use cases
+
+### Support Vector Machines (SVM)
+
+- [A Beginner's Guide to Support Vector Machines](https://towardsdatascience.com/support-vector-machine-introduction-to-machine-learning-algorithms-934a444fca47) - Towards Data Science - Introduction to SVM concepts
+- [Support Vector Machines (SVM) Algorithm Explained](https://www.datacamp.com/tutorial/svm-classification-scikit-learn-python) - DataCamp - Practical SVM tutorial with scikit-learn
+- [Support Vector Machines for Machine Learning](https://machinelearningmastery.com/support-vector-machines-for-machine-learning/) - Machine Learning Mastery - Comprehensive guide to SVM
+- [Support Vector Machines in Machine Learning](https://www.geeksforgeeks.org/support-vector-machine-algorithm/) - GeeksforGeeks - SVM explanation with code examples
+- [Understanding Support Vector Machine (SVM) Algorithm](https://www.analyticsvidhya.com/blog/2021/10/support-vector-machinessvm-a-complete-guide-for-beginners/) - Analytics Vidhya - Complete beginner's guide to SVM
+- [Understanding the Kernel Trick](https://towardsdatascience.com/understanding-the-kernel-trick-e0bc6112ef78) - Towards Data Science - Explanation of kernel methods in SVM
+
+### Machine Learning Evaluation Metrics
+
+- [20 Popular Machine Learning Metrics](https://towardsdatascience.com/20-popular-machine-learning-metrics-part-1-classification-regression-evaluation-metrics-1ca3e282a2ce) - Towards Data Science - Comprehensive guide to classification and regression metrics
+- [Beyond Accuracy: Precision and Recall](https://towardsdatascience.com/beyond-accuracy-precision-and-recall-3da06bea9f6c) - Towards Data Science - When and why to use precision and recall
+- [Classification Metrics Explained](https://www.datacamp.com/tutorial/tutorial-classification-metrics-machine-learning) - DataCamp - Practical tutorial on classification metrics
+- [Evaluation Metrics for Classification Problems](https://www.analyticsvidhya.com/blog/2021/07/metrics-to-evaluate-your-classification-model-to-take-the-right-decisions/) - Analytics Vidhya - Detailed guide to choosing metrics
+- [How to Choose the Right Evaluation Metric for Machine Learning Models](https://machinelearningmastery.com/metrics-evaluate-machine-learning-algorithms-python/) - Machine Learning Mastery - Comprehensive metric selection guide
+- [Precision-Recall Curves: What Are They and How Are They Used?](https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/) - Machine Learning Mastery - Understanding PR and ROC curves
+- [Regression Metrics Explained](https://www.datacamp.com/tutorial/tutorial-regression-metrics-machine-learning) - DataCamp - Guide to MSE, RMSE, MAE, R², and MAPE
+- [Understanding AUC-ROC Curve](https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5) - Towards Data Science - Comprehensive guide to ROC curves
+- [Understanding Confusion Matrix](https://towardsdatascience.com/understanding-confusion-matrix-a9ad42dcfd62) - Towards Data Science - Foundation of classification metrics
+- [When to Use ROC vs Precision-Recall Curves?](https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-imbalanced-classification/) - Machine Learning Mastery - Choosing metrics for imbalanced data
 
 ### Bagging and Ensemble Learning
 
@@ -61,7 +155,62 @@
 
 ### Scikit-learn
 
+#### Linear Models
+
+- [Elastic-Net - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ElasticNet.html) - API reference for Elastic Net regression
+- [Lasso - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html) - API reference for Lasso regression
+- [Linear Models - scikit-learn](https://scikit-learn.org/stable/modules/linear_model.html) - User guide for all linear models including regression and classification
+- [LinearRegression - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html) - API reference for ordinary least squares
+- [LogisticRegression - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html) - API reference for logistic regression classification
+- [Ridge - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html) - API reference for Ridge regression
+
+#### Probabilistic Models
+
+- [BernoulliNB - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.BernoulliNB.html) - API reference for Bernoulli Naive Bayes (binary features)
+- [GaussianNB - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.GaussianNB.html) - API reference for Gaussian Naive Bayes (continuous features)
+- [LinearDiscriminantAnalysis - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html) - API reference for LDA classifier and transformer
+- [MultinomialNB - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html) - API reference for Multinomial Naive Bayes (count data, text)
+- [Naive Bayes - scikit-learn](https://scikit-learn.org/stable/modules/naive_bayes.html) - User guide for all Naive Bayes variants
+- [QuadraticDiscriminantAnalysis - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis.html) - API reference for QDA
+
+#### Instance-Based Methods (K-Nearest Neighbors)
+
+- [KNeighborsClassifier - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html) - API reference for KNN classification
+- [KNeighborsRegressor - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html) - API reference for KNN regression
+- [Nearest Neighbors - scikit-learn](https://scikit-learn.org/stable/modules/neighbors.html) - User guide for nearest neighbors algorithms including KNN, radius neighbors, and nearest centroid
+
+#### Support Vector Machines
+
+- [LinearSVC - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html) - API reference for linear SVM using liblinear (scalable for large datasets)
+- [NuSVC - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.svm.NuSVC.html) - API reference for Nu-Support Vector Classification
+- [SVC - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html) - API reference for C-Support Vector Classification with kernel methods
+- [SVR - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html) - API reference for Support Vector Regression
+- [Support Vector Machines - scikit-learn](https://scikit-learn.org/stable/modules/svm.html) - User guide for SVM classification, regression, and outlier detection
+
+#### Evaluation Metrics
+
+- [Classification Metrics - scikit-learn](https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics) - User guide for classification metrics including accuracy, precision, recall, F1, ROC-AUC, confusion matrix
+- [Regression Metrics - scikit-learn](https://scikit-learn.org/stable/modules/model_evaluation.html#regression-metrics) - User guide for regression metrics including MSE, MAE, R², MAPE
+- [accuracy_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html) - API reference for accuracy calculation
+- [confusion_matrix - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html) - API reference for confusion matrix computation
+- [f1_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html) - API reference for F1-score (harmonic mean of precision and recall)
+- [log_loss - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.log_loss.html) - API reference for log loss (binary cross-entropy)
+- [matthews_corrcoef - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html) - API reference for Matthews Correlation Coefficient
+- [mean_absolute_error - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_absolute_error.html) - API reference for MAE
+- [mean_squared_error - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html) - API reference for MSE and RMSE
+- [precision_recall_curve - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html) - API reference for precision-recall curve computation
+- [precision_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html) - API reference for precision calculation
+- [r2_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.r2_score.html) - API reference for R² (coefficient of determination)
+- [recall_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html) - API reference for recall (sensitivity)
+- [roc_auc_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html) - API reference for ROC-AUC calculation
+- [roc_curve - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html) - API reference for ROC curve computation
+
+#### Model Selection and Evaluation
+
 - [Cross-validation - scikit-learn](https://scikit-learn.org/stable/modules/cross_validation.html) - Official guide to cross-validation strategies, model evaluation, and the model_selection module
+
+#### Tree-Based Models
+
 - [Decision Trees - scikit-learn](https://scikit-learn.org/stable/modules/tree.html) - User guide for decision tree algorithms
 - [DecisionTreeClassifier - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html) - API reference for decision tree classification
 - [DecisionTreeRegressor - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html) - API reference for decision tree regression
@@ -81,3 +230,9 @@
 ### Hyperparameter Optimization
 
 - [Optuna Documentation](https://optuna.readthedocs.io/) - Official documentation for Optuna hyperparameter optimization framework with pruning, visualization, and distributed optimization
+
+### Statistical Modeling
+
+- [Generalized Linear Models - Statsmodels](https://www.statsmodels.org/stable/glm.html) - Comprehensive GLM documentation for various distributions and link functions
+- [Linear Regression - Statsmodels](https://www.statsmodels.org/stable/regression.html) - Statistical linear regression with hypothesis testing and diagnostics
+- [Statsmodels Documentation](https://www.statsmodels.org/stable/index.html) - Official statsmodels documentation for statistical modeling in Python
