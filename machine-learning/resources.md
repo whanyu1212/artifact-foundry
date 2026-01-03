@@ -25,6 +25,13 @@
 - [Zou & Hastie (2005) "Regularization and Variable Selection via the Elastic Net"](https://hastie.su.stanford.edu/Papers/B67.2%20%282005%29%20301-320%20Zou%20&%20Hastie.pdf) - Elastic Net paper combining L1 and L2 penalties for grouped variable selection
 - [Nelder & Wedderburn (1972) "Generalized Linear Models"](https://www.jstor.org/stable/2344614) - Foundational GLM paper establishing the framework for exponential family distributions
 
+### Loss Functions and Optimization
+
+- [Huber, P. J. (1964) "Robust Estimation of a Location Parameter"](https://projecteuclid.org/journals/annals-of-mathematical-statistics/volume-35/issue-1/Robust-Estimation-of-a-Location-Parameter/10.1214/aoms/1177703732.full) - Original Huber loss paper introducing robust M-estimation
+- [Koenker, R., & Bassett, G. (1978) "Regression Quantiles"](https://www.jstor.org/stable/1913643) - Foundational paper on quantile regression and pinball loss
+- [Lin, T. Y., Goyal, P., Girshick, R., He, K., & Dollár, P. (2017) "Focal Loss for Dense Object Detection"](https://arxiv.org/abs/1708.02002) - Focal loss addressing class imbalance in object detection (RetinaNet)
+- [Vapnik, V. N. (1995) "The Nature of Statistical Learning Theory"](https://link.springer.com/book/10.1007/978-1-4757-2440-0) - Comprehensive theory of loss functions and risk minimization
+
 ### Probabilistic Models
 
 - [Fisher, R. A. (1936) "The Use of Multiple Measurements in Taxonomic Problems"](https://onlinelibrary.wiley.com/doi/10.1111/j.1469-1809.1936.tb02137.x) - Original LDA paper introducing linear discriminant analysis
@@ -49,6 +56,19 @@
 - [Matthews, B. W. (1975) "Comparison of the Predicted and Observed Secondary Structure of T4 Phage Lysozyme"](https://www.sciencedirect.com/science/article/abs/pii/0005279575901099) - Original paper introducing Matthews Correlation Coefficient
 - [Powers, D. M. W. (2011) "Evaluation: From Precision, Recall and F-Measure to ROC, Informedness, Markedness & Correlation"](https://arxiv.org/abs/2010.16061) - Comprehensive analysis of classification metrics relationships
 - [Willmott, C. J., & Matsuura, K. (2005) "Advantages of the Mean Absolute Error (MAE) over the Root Mean Square Error (RMSE)"](https://rmets.onlinelibrary.wiley.com/doi/10.1002/joc.1183) - Discussion of MAE vs RMSE for model evaluation
+
+### Unsupervised Learning (Clustering and Dimensionality Reduction)
+
+- [Arthur, D., & Vassilvitskii, S. (2007) "K-Means++: The Advantages of Careful Seeding"](https://theory.stanford.edu/~sergei/papers/kMeansPP-soda.pdf) - K-Means++ initialization improving convergence and results
+- [Dempster, A. P., Laird, N. M., & Rubin, D. B. (1977) "Maximum Likelihood from Incomplete Data via the EM Algorithm"](https://www.jstor.org/stable/2984875) - Foundational EM algorithm paper for Gaussian Mixture Models
+- [Ester, M., Kriegel, H. P., Sander, J., & Xu, X. (1996) "A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise"](https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf) - Original DBSCAN paper
+- [Hotelling, H. (1933) "Analysis of a Complex of Statistical Variables into Principal Components"](https://psycnet.apa.org/record/1934-00645-001) - Early work on Principal Component Analysis
+- [Jolliffe, I. T. (2002) "Principal Component Analysis"](https://link.springer.com/book/10.1007/b98835) - Comprehensive book on PCA theory and applications
+- [Lloyd, S. P. (1982) "Least Squares Quantization in PCM"](https://ieeexplore.ieee.org/document/1056489) - Original K-Means algorithm (Lloyd's algorithm)
+- [MacQueen, J. (1967) "Some Methods for Classification and Analysis of Multivariate Observations"](https://projecteuclid.org/proceedings/berkeley-symposium-on-mathematical-statistics-and-probability/Proceedings-of-the-Fifth-Berkeley-Symposium-on-Mathematical-Statistics-and/Chapter/Some-methods-for-classification-and-analysis-of-multivariate-observations/bsmsp/1200512992) - K-Means clustering method
+- [Pearson, K. (1901) "On Lines and Planes of Closest Fit to Systems of Points in Space"](https://www.tandfonline.com/doi/abs/10.1080/14786440109462720) - Original PCA paper
+- [Rousseeuw, P. J. (1987) "Silhouettes: A Graphical Aid to the Interpretation and Validation of Cluster Analysis"](https://www.sciencedirect.com/science/article/pii/0377042787901257) - Silhouette method for cluster validation
+- [van der Maaten, L., & Hinton, G. (2008) "Visualizing Data using t-SNE"](https://www.jmlr.org/papers/volume9/vandermaaten08a/vandermaaten08a.pdf) - t-SNE for high-dimensional data visualization
 
 ### Tree-Based Methods and Ensembles
 
@@ -109,6 +129,19 @@
 - [Understanding Support Vector Machine (SVM) Algorithm](https://www.analyticsvidhya.com/blog/2021/10/support-vector-machinessvm-a-complete-guide-for-beginners/) - Analytics Vidhya - Complete beginner's guide to SVM
 - [Understanding the Kernel Trick](https://towardsdatascience.com/understanding-the-kernel-trick-e0bc6112ef78) - Towards Data Science - Explanation of kernel methods in SVM
 
+### Loss Functions and Optimization
+
+- [5 Regression Loss Functions All Machine Learners Should Know](https://heartbeat.comet.ml/5-regression-loss-functions-all-machine-learners-should-know-4fb140e9d4b0) - Heartbeat (Comet ML) - Comprehensive guide to MSE, MAE, Huber, Log-Cosh, and Quantile losses
+- [A Guide to Loss Functions in Machine Learning](https://builtin.com/data-science/loss-functions-in-machine-learning) - Built In - Overview of classification and regression loss functions
+- [Binary Cross Entropy/Log Loss for Binary Classification](https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a) - Towards Data Science - Visual explanation of log loss
+- [Common Loss Functions in Machine Learning](https://towardsdatascience.com/common-loss-functions-in-machine-learning-46af0ffc4d23) - Towards Data Science - Comparison of MSE, Cross-Entropy, and Hinge Loss
+- [Huber Loss in Machine Learning](https://www.geeksforgeeks.org/huber-loss-in-machine-learning/) - GeeksforGeeks - Explanation and implementation of Huber loss
+- [Loss Functions Explained](https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html) - ML Cheatsheet - Comprehensive reference for common loss functions
+- [Loss Functions in Machine Learning: The Ultimate Guide](https://neptune.ai/blog/loss-functions-in-machine-learning) - Neptune.ai - Detailed guide covering classification, regression, and ranking losses
+- [Understanding Categorical Cross-Entropy Loss, Binary Cross-Entropy Loss, Softmax Loss, Logistic Loss, Focal Loss and all those confusing names](https://gombru.github.io/2018/05/23/cross_entropy_loss/) - Raul Gomez - Clarification of cross-entropy terminology
+- [Understanding Focal Loss: A Quick Read](https://towardsdatascience.com/focal-loss-a-better-alternative-for-cross-entropy-1d073d92d075) - Towards Data Science - Focal loss for imbalanced classification
+- [Understanding Quantile Loss](https://towardsdatascience.com/quantile-loss-function-1f0b007c75cf) - Towards Data Science - Quantile regression and pinball loss
+
 ### Machine Learning Evaluation Metrics
 
 - [20 Popular Machine Learning Metrics](https://towardsdatascience.com/20-popular-machine-learning-metrics-part-1-classification-regression-evaluation-metrics-1ca3e282a2ce) - Towards Data Science - Comprehensive guide to classification and regression metrics
@@ -121,6 +154,21 @@
 - [Understanding AUC-ROC Curve](https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5) - Towards Data Science - Comprehensive guide to ROC curves
 - [Understanding Confusion Matrix](https://towardsdatascience.com/understanding-confusion-matrix-a9ad42dcfd62) - Towards Data Science - Foundation of classification metrics
 - [When to Use ROC vs Precision-Recall Curves?](https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-imbalanced-classification/) - Machine Learning Mastery - Choosing metrics for imbalanced data
+
+### Unsupervised Learning (Clustering and Dimensionality Reduction)
+
+- [A Comprehensive Guide to K-Means Clustering](https://towardsdatascience.com/k-means-clustering-algorithm-applications-evaluation-methods-and-drawbacks-aa03e644b48a) - Towards Data Science - K-Means algorithm, applications, and limitations
+- [Clustering Performance Evaluation](https://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation) - Scikit-Learn - Metrics for evaluating clustering quality
+- [DBSCAN Clustering Algorithm in Machine Learning](https://www.kdnuggets.com/2020/04/dbscan-clustering-algorithm-machine-learning.html) - KDnuggets - DBSCAN theory and applications
+- [DBSCAN: Density-Based Clustering Explained](https://towardsdatascience.com/dbscan-clustering-explained-97556a2ad556) - Towards Data Science - Comprehensive DBSCAN guide
+- [Hierarchical Clustering Explained](https://towardsdatascience.com/understanding-the-concept-of-hierarchical-clustering-technique-c6e8243758ec) - Towards Data Science - Agglomerative and divisive clustering
+- [K-Means Clustering: Algorithm, Applications, Evaluation Methods](https://www.analyticsvidhya.com/blog/2019/08/comprehensive-guide-k-means-clustering/) - Analytics Vidhya - Complete K-Means guide
+- [PCA: Principal Component Analysis Explained](https://builtin.com/data-science/step-step-explanation-principal-component-analysis) - Built In - Step-by-step PCA explanation
+- [Principal Component Analysis (PCA) in Python](https://www.datacamp.com/tutorial/principal-component-analysis-in-python) - DataCamp - Practical PCA tutorial
+- [Principal Component Analysis Explained Visually](https://setosa.io/ev/principal-component-analysis/) - Setosa - Interactive PCA visualization
+- [The Complete Guide to Clustering Analysis: K-Means and Hierarchical](https://www.datacamp.com/tutorial/k-means-clustering-python) - DataCamp - Clustering algorithms comparison
+- [Understanding DBSCAN and Implementation with Python](https://www.analyticsvidhya.com/blog/2020/09/how-dbscan-clustering-works/) - Analytics Vidhya - DBSCAN implementation guide
+- [Understanding K-Means Clustering in Machine Learning](https://towardsdatascience.com/understanding-k-means-clustering-in-machine-learning-6a6e67336aa1) - Towards Data Science - K-Means fundamentals
 
 ### Bagging and Ensemble Learning
 
@@ -187,6 +235,13 @@
 - [SVR - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html) - API reference for Support Vector Regression
 - [Support Vector Machines - scikit-learn](https://scikit-learn.org/stable/modules/svm.html) - User guide for SVM classification, regression, and outlier detection
 
+#### Loss Functions
+
+- [hinge_loss - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.hinge_loss.html) - API reference for hinge loss computation (SVM)
+- [log_loss - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.log_loss.html) - API reference for log loss (binary/multi-class cross-entropy)
+- [mean_absolute_error - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_absolute_error.html) - API reference for MAE (L1 loss)
+- [mean_squared_error - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html) - API reference for MSE (L2 loss) and RMSE
+
 #### Evaluation Metrics
 
 - [Classification Metrics - scikit-learn](https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics) - User guide for classification metrics including accuracy, precision, recall, F1, ROC-AUC, confusion matrix
@@ -194,16 +249,26 @@
 - [accuracy_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html) - API reference for accuracy calculation
 - [confusion_matrix - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html) - API reference for confusion matrix computation
 - [f1_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html) - API reference for F1-score (harmonic mean of precision and recall)
-- [log_loss - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.log_loss.html) - API reference for log loss (binary cross-entropy)
 - [matthews_corrcoef - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html) - API reference for Matthews Correlation Coefficient
-- [mean_absolute_error - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_absolute_error.html) - API reference for MAE
-- [mean_squared_error - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html) - API reference for MSE and RMSE
 - [precision_recall_curve - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html) - API reference for precision-recall curve computation
 - [precision_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html) - API reference for precision calculation
 - [r2_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.r2_score.html) - API reference for R² (coefficient of determination)
 - [recall_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html) - API reference for recall (sensitivity)
 - [roc_auc_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html) - API reference for ROC-AUC calculation
 - [roc_curve - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html) - API reference for ROC curve computation
+
+#### Unsupervised Learning
+
+- [calinski_harabasz_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.calinski_harabasz_score.html) - API reference for Calinski-Harabasz clustering metric
+- [Clustering - scikit-learn](https://scikit-learn.org/stable/modules/clustering.html) - User guide for clustering algorithms and evaluation
+- [davies_bouldin_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.davies_bouldin_score.html) - API reference for Davies-Bouldin clustering metric
+- [DBSCAN - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html) - API reference for DBSCAN density-based clustering
+- [Decomposition - scikit-learn](https://scikit-learn.org/stable/modules/decomposition.html) - User guide for dimensionality reduction (PCA, NMF, ICA)
+- [GaussianMixture - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html) - API reference for Gaussian Mixture Models
+- [KMeans - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html) - API reference for K-Means clustering
+- [PCA - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html) - API reference for Principal Component Analysis
+- [silhouette_score - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html) - API reference for silhouette clustering metric
+- [TSNE - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html) - API reference for t-SNE dimensionality reduction
 
 #### Model Selection and Evaluation
 
