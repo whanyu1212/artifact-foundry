@@ -1105,7 +1105,50 @@ X = F⁻¹(U) has CDF F
 
 **Relationship summary:**
 
-![PMF/PDF ↔ CDF Relationships](assets/pmf_pdf_cdf_relationship.png)
+```mermaid
+graph TB
+    subgraph Discrete["Discrete Random Variable"]
+        PMF["PMF: P(X=x)<br/>Probability Mass Function<br/>P(X=x) > 0"]
+        DCDF["CDF: F(x) = P(X≤x)<br/>F(x) = Σ P(X=xᵢ)<br/>Step function"]
 
-*Relationships between PMF/PDF, CDF, quantiles, and probabilities.*
+        PMF -->|"Sum up to x"| DCDF
+        DCDF -->|"Jump size at x"| PMF
+    end
+
+    subgraph Continuous["Continuous Random Variable"]
+        PDF["PDF: f(x)<br/>Probability Density Function<br/>P(X=x) = 0"]
+        CCDF["CDF: F(x) = P(X≤x)<br/>F(x) = ∫₋∞ˣ f(t)dt<br/>Smooth function"]
+
+        PDF -->|"Integrate:<br/>∫₋∞ˣ f(t)dt"| CCDF
+        CCDF -->|"Differentiate:<br/>f(x) = dF(x)/dx"| PDF
+    end
+
+    subgraph Operations["Common Operations"]
+        QUANT["Quantile Function<br/>F⁻¹(p)<br/>Inverse CDF"]
+        PROB["Probabilities<br/>P(a < X ≤ b)"]
+        STATS["Statistics<br/>E[X], Var(X)"]
+    end
+
+    DCDF -->|"Find percentiles"| QUANT
+    CCDF -->|"Find percentiles"| QUANT
+
+    QUANT -->|"Generate samples<br/>X = F⁻¹(U)"| DCDF
+    QUANT -->|"Generate samples<br/>X = F⁻¹(U)"| CCDF
+
+    DCDF -->|"F(b) - F(a)"| PROB
+    CCDF -->|"F(b) - F(a)"| PROB
+
+    PMF -->|"Σ x·P(X=x)"| STATS
+    PDF -->|"∫ x·f(x)dx"| STATS
+
+    style PMF fill:#3498DB,stroke:#2874A6,color:#fff
+    style DCDF fill:#E74C3C,stroke:#C0392B,color:#fff
+    style PDF fill:#27AE60,stroke:#229954,color:#fff
+    style CCDF fill:#F39C12,stroke:#E67E22,color:#fff
+    style QUANT fill:#9B59B6,stroke:#8E44AD,color:#fff
+    style PROB fill:#16A085,stroke:#117864,color:#fff
+    style STATS fill:#E67E22,stroke:#CA6F1E,color:#fff
+```
+
+*Key relationships between probability functions and their uses.*
 </details>
