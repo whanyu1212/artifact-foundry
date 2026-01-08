@@ -155,6 +155,10 @@ All Python code must follow the detailed standards in `.claude/rules/python-snip
 **Key requirements:**
 - **Documentation**: Google-style docstrings with type annotations, examples
 - **Type Hints**: All parameters and return values must be annotated
+  - Use `Union[]` for parameters accepting multiple types (e.g., `cv: Union[int, KFold, StratifiedKFold]`)
+  - Use `Optional[]` for parameters that can be None (e.g., `random_state: Optional[int]`)
+  - For variadic args like `*arrays`, annotate with the expected type (e.g., `*arrays: np.ndarray`)
+  - Import from `typing`: `from typing import Dict, List, Any, Union, Optional`
 - **Comments**: Explain concepts and "why", not syntax or "what"
 - **Tests**: Every snippet requires tests to verify correctness
 - **Educational Focus**: Code teaches concepts, includes formulas and theory
@@ -164,6 +168,9 @@ See [.claude/rules/python-snippets.md](.claude/rules/python-snippets.md) for com
 ## Current Focus Areas
 
 Based on recent activity:
+- Cross-validation implementations: from-scratch and sklearn API comparison
+  - `machine-learning/snippets/evaluation/cross_validation_from_scratch.py` - Pure NumPy implementations
+  - `machine-learning/snippets/evaluation/cross_validation.py` - sklearn API with hyperparameter tuning
 - Probability and statistics flashcards with visual diagrams
 - Educational visualization tools (matplotlib, Mermaid)
 - Deep learning fundamentals and resources organization
