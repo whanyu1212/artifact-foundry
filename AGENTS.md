@@ -103,6 +103,27 @@ Add new learning resources (books, articles, courses, papers) to the appropriate
 ### /link-project
 Add project repository links to `PROJECTS.md` when completing, starting, or sharing hands-on projects.
 
+### diagram-generator
+**When to use**: Automatically activates when working on flashcards or educational materials that need visual diagrams.
+
+**What it does**:
+- Guides selection between Python (matplotlib) and Mermaid based on diagram type
+- Provides consistent styling (colorblind-friendly palettes, 300 DPI, educational annotations)
+- Offers templates and helper functions for common diagram patterns
+- Ensures diagrams are optimized for learning and quick comprehension
+
+**Tool selection**:
+- **Python (matplotlib)**: Data plots, distributions, scientific diagrams, overlapping regions (Venn diagrams), conditional probability visualizations
+- **Mermaid**: Flowcharts, decision trees, relationship graphs, hierarchies, process flows
+
+**Available utilities** (`.claude/skills/diagram-generator/utils.py`):
+- `setup_flashcard_figure()` - Consistent figure creation
+- `get_color_palette()` - Colorblind-friendly colors (Wong 2011 palette)
+- `save_flashcard()` - High-DPI saving with white background
+- `annotate_point()`, `add_text_box()` - Educational annotations
+- `create_side_by_side()`, `create_stacked()` - Comparison layouts
+- `setup_mermaid_template()` - Mermaid diagram templates
+
 ## Workflow Preferences
 
 ### When Adding Notes
@@ -119,6 +140,7 @@ Add project repository links to `PROJECTS.md` when completing, starting, or shar
 4. Show clear input/output examples
 5. Document edge cases and limitations
 6. Make examples self-contained and runnable
+7. For example/comparison/benchmarking scripts: Use `rich` library for formatted terminal output (tables, panels, colors)
 
 ### When Adding Resources
 1. Use consistent format: `- [Title](link) - Author/Source - Brief description`
@@ -127,18 +149,25 @@ Add project repository links to `PROJECTS.md` when completing, starting, or shar
 4. Add to appropriate topic's `resources.md`
 
 ### Code Style
-- **Python**: Follow PEP 8, type hints where helpful for learning
-- **Comments**: Explain concepts and non-obvious decisions, not syntax
-- **Tests**: Include for all code snippets to verify correctness
-- **Documentation**: Focus on educational value and understanding
+
+All Python code must follow the detailed standards in `.claude/rules/python-snippets.md`.
+
+**Key requirements:**
+- **Documentation**: Google-style docstrings with type annotations, examples
+- **Type Hints**: All parameters and return values must be annotated
+- **Comments**: Explain concepts and "why", not syntax or "what"
+- **Tests**: Every snippet requires tests to verify correctness
+- **Educational Focus**: Code teaches concepts, includes formulas and theory
+
+See [.claude/rules/python-snippets.md](.claude/rules/python-snippets.md) for complete standards.
 
 ## Current Focus Areas
 
 Based on recent activity:
-- Tree-based machine learning methods and evaluation metrics
-- Python class system and OOP fundamentals
-- Python build systems and package management
-- Decision tree implementations from scratch
+- Probability and statistics flashcards with visual diagrams
+- Educational visualization tools (matplotlib, Mermaid)
+- Deep learning fundamentals and resources organization
+- Diagram generation workflows for learning materials
 
 ## Git Workflow
 
