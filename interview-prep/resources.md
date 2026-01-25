@@ -1,5 +1,12 @@
 # Interview Prep Resources
 
+## Interview Question Repositories
+
+Comprehensive collections of interview questions that informed the flashcard content:
+
+- [Data Science Interview Questions & Answers](https://github.com/youssefHosni/Data-Science-Interview-Questions-Answers) - Youssef Hosni - Extensive collection covering ML, deep learning, statistics, probability, Python, SQL, and LLMs with detailed answers
+- [Data Science Interviews](https://github.com/alexeygrigorev/data-science-interviews) - Alexey Grigorev - Community-driven repository with theoretical and technical questions, organized by difficulty level
+
 ## Cheatsheets
 
 ### SQL/PostgreSQL
