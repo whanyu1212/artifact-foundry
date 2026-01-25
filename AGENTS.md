@@ -148,6 +148,12 @@ Add project repository links to `PROJECTS.md` when completing, starting, or shar
 3. Keep entries alphabetically sorted within each type
 4. Add to appropriate topic's `resources.md`
 
+### Running Code
+- **Always activate virtual environment**: Before running any Python script, ensure the environment is active: `source .venv/bin/activate`
+
+### Installing Packages
+- **Use uv for performance**: When installing packages, prefer `uv pip install` over `pip install` for faster resolution and installation.
+
 ### Code Style
 
 All Python code must follow the detailed standards in `.claude/rules/python-snippets.md`.
@@ -168,9 +174,6 @@ See [.claude/rules/python-snippets.md](.claude/rules/python-snippets.md) for com
 ## Current Focus Areas
 
 Based on recent activity:
-- Cross-validation implementations: from-scratch and sklearn API comparison
-  - `machine-learning/snippets/evaluation/cross_validation_from_scratch.py` - Pure NumPy implementations
-  - `machine-learning/snippets/evaluation/cross_validation.py` - sklearn API with hyperparameter tuning
 - Probability and statistics flashcards with visual diagrams
 - Educational visualization tools (matplotlib, Mermaid)
 - Deep learning fundamentals and resources organization

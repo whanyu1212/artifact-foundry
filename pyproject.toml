@@ -18,6 +18,7 @@ ml = [
     "xgboost>=2.0.0",
     "lightgbm>=4.0.0",
     "optuna>=3.0.0",
+    "shap>=0.40.0",
 ]
 
 # Deep Learning
